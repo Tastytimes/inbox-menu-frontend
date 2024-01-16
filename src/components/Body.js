@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Login from "./Login";
 import Browse from "./Browse";
 import {
+  Navigate,
   Route,
   BrowserRouter as Router,
   Routes,
@@ -15,11 +16,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../store/Auth-Slice";
 import KitchenList from "./KitchenList";
 import Navbar from "./Navbar";
+import RoleBasedNavigation from "./RoleBasedNavigation ";
 
 const Body = () => {
   const selector = useSelector((store) => store.auth);
   const dispatch = useDispatch();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     const token = JSON.parse(localStorage.getItem("info"));
@@ -29,46 +32,25 @@ const Body = () => {
         role: token.role,
       };
       dispatch(login(obj));
-
-      // switch (token.role) {
-      //   case "admin":
-      //     navigate("/dashboard");
-      //     break;
-      //   case "kitchen":
-      //     navigate("/browse");
-      //   default:
-      //     navigate("/orders");
-      //     break;
-      // }
-      // navigate();
+      switch (token?.role) {
+        case "admin":
+          navigate("/admin-dashboard");
+          break;
+        case "kitchen":
+          navigate("/seller-dashboard");
+          break;
+        default:
+          navigate("/browse");
+          break;
+      }
+    } else {
+      navigate("/")
     }
-  }, [selector]);
+  }, []);
 
-  const PageLoadingRouting = () => (
-    <Routes>
-      <Route path="/" element={<Login />} />
-    </Routes>
-  );
 
-  const DashboardLoading = () => (
-    <Routes>
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/kitchen" element={<KitchenList />} />
-    </Routes>
-  );
 
-  const Loading = ({ role }) => {
-    console.log("routing", role);
-    if (role === "admin") {
-      return <DashboardLoading />;
-    }
-    if (role === "kitchen") {
-      return <PageLoadingRouting />;
-    }
 
-    // You might want to handle other roles or scenarios here
-    return <div>Loading...</div>;
-  };
 
   // const appRouter = createBrowserRouter([
   //   {
@@ -90,9 +72,12 @@ const Body = () => {
   // ]);
 
   return (
-    <Router>
-      <Loading role={selector.role} />
-    </Router>
+
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/admin-dashboard" element={<Dashboard />} />
+      <Route path="/seller-dashboard" element={<Inventory />} />
+    </Routes>
   );
 };
 
