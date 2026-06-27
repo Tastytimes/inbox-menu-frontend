@@ -1,82 +1,38 @@
-import React, { useState, useEffect } from "react";
-import Login from "./Login";
-import Browse from "./Browse";
-import {
-  Navigate,
-  Route,
-  BrowserRouter as Router,
-  Routes,
-  createBrowserRouter,
-  useNavigate,
-} from "react-router-dom";
-import { RouterProvider } from "react-router-dom";
-import Dashboard from "./Dashboard";
-import Inventory from "./Inventory";
-import { useDispatch, useSelector } from "react-redux";
-import { login } from "../store/Auth-Slice";
-import KitchenList from "./KitchenList";
-import Navbar from "./Navbar";
-import RoleBasedNavigation from "./RoleBasedNavigation ";
+import React from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import CheckoutPage from "./CheckoutPage";
+import ContactDetailsPage from "./ContactDetailsPage";
+import HomePage from "./HomePage";
+import OrderLookupPage from "./OrderLookupPage";
+import PaymentStatusPage from "./PaymentStatusPage";
+import RestaurantPage from "./RestaurantPage";
+import InvalidUrl from "./InvalidUrl";
+import { routes } from "../utils/routes";
+
+const QrLegacyRedirect = () => {
+  const location = useLocation();
+  return (
+    <Navigate
+      to={`/qr${location.pathname}${location.search}${location.hash}`}
+      replace
+    />
+  );
+};
 
 const Body = () => {
-  const selector = useSelector((store) => store.auth);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [userRole, setUserRole] = useState('');
-
-  useEffect(() => {
-    const token = JSON.parse(localStorage.getItem("info"));
-    if (token) {
-      const obj = {
-        email: token.email,
-        role: token.role,
-      };
-      dispatch(login(obj));
-      switch (token?.role) {
-        case "admin":
-          navigate("/admin-dashboard");
-          break;
-        case "kitchen":
-          navigate("/seller-dashboard");
-          break;
-        default:
-          navigate("/browse");
-          break;
-      }
-    } else {
-      navigate("/")
-    }
-  }, []);
-
-
-
-
-
-  // const appRouter = createBrowserRouter([
-  //   {
-  //     path: "/",
-  //     element: <Login />,
-  //   },
-  //   {
-  //     path: "/browse",
-  //     element: <Browse />,
-  //   },
-  //   {
-  //     path: "/dashboard",
-  //     element: <Dashboard />,
-  //   },
-  //   {
-  //     path: "/inventory",
-  //     element: <Inventory />,
-  //   },
-  // ]);
-
   return (
-
     <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/admin-dashboard" element={<Dashboard />} />
-      <Route path="/seller-dashboard" element={<Inventory />} />
+      <Route path={routes.home} element={<HomePage />} />
+      <Route path={routes.trackOrders} element={<OrderLookupPage />} />
+      <Route path={routes.paymentStatus} element={<PaymentStatusPage />} />
+      <Route path="/qr/:slug/payment/status" element={<PaymentStatusPage />} />
+      <Route path="/qr/:slug/checkout/contact" element={<ContactDetailsPage />} />
+      <Route path="/qr/:slug/checkout" element={<CheckoutPage />} />
+      <Route path="/qr/:slug" element={<RestaurantPage />} />
+      <Route path="/track-orders" element={<Navigate to={routes.trackOrders} replace />} />
+      <Route path="/payment/status" element={<Navigate to={routes.paymentStatus} replace />} />
+      <Route path="/:slug/*" element={<QrLegacyRedirect />} />
+      <Route path="*" element={<InvalidUrl />} />
     </Routes>
   );
 };
