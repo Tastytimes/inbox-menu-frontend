@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import CheckoutPage from "./CheckoutPage";
 import ContactDetailsPage from "./ContactDetailsPage";
@@ -8,6 +8,12 @@ import PaymentStatusPage from "./PaymentStatusPage";
 import RestaurantPage from "./RestaurantPage";
 import InvalidUrl from "./InvalidUrl";
 import { routes } from "../utils/routes";
+
+const AdminApp = React.lazy(() => import("../admin/AdminApp"));
+
+const AdminLoadingFallback = () => (
+  <div className="admin-loading">Loading admin…</div>
+);
 
 const QrLegacyRedirect = () => {
   const location = useLocation();
@@ -23,6 +29,14 @@ const Body = () => {
   return (
     <Routes>
       <Route path={routes.home} element={<HomePage />} />
+      <Route
+        path="/admin/*"
+        element={
+          <Suspense fallback={<AdminLoadingFallback />}>
+            <AdminApp />
+          </Suspense>
+        }
+      />
       <Route path={routes.trackOrders} element={<OrderLookupPage />} />
       <Route path={routes.paymentStatus} element={<PaymentStatusPage />} />
       <Route path="/qr/:slug/payment/status" element={<PaymentStatusPage />} />
