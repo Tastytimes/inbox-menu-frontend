@@ -10,7 +10,9 @@ import {
 } from "../constants/brand";
 import { routes } from "../utils/routes";
 import HeroQrIllustration from "./home/HeroQrIllustration";
+import SiteFooter from "./legal/SiteFooter";
 import "./home/HomePage.css";
+import "./legal/legalPages.css";
 
 const FEATURES = [
   {
@@ -269,14 +271,7 @@ const HomePage = () => (
     </section>
 
     <footer className="home-page__footer">
-      <div className="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <span>© {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</span>
-        <div className="d-flex gap-4">
-          <Link to={routes.trackOrders}>Track Orders</Link>
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How It Works</a>
-        </div>
-      </div>
+      <SiteFooter />
     </footer>
   </div>
 );

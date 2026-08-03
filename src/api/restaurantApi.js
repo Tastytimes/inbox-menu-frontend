@@ -1,8 +1,6 @@
-import axios from "axios";
+import { restaurantClient } from "./baseUrl";
 
-export const restaurantClient = axios.create({
-  baseURL: process.env.REACT_APP_RESTAURANT_API_URL || "http://localhost:3000",
-});
+export { restaurantClient };
 
 export const getRestaurantBySlug = async (slug) => {
   const { data } = await restaurantClient.get(`/user/restaurants/${slug}`);

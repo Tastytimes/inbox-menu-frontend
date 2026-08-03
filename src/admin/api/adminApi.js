@@ -1,4 +1,5 @@
 import axios from "axios";
+import { RESTAURANT_API_BASE_URL } from "../../api/baseUrl";
 import { clearStoredAdminAuth, getStoredAdminAuth } from "../utils/adminAuthStorage";
 import { adminRoutes } from "../../utils/routes";
 
@@ -8,7 +9,7 @@ export const PLATFORM_ADMIN_ROLE = "platform_admin";
 export { isSuperAdminRole } from "../constants/auth";
 
 export const adminClient = axios.create({
-  baseURL: process.env.REACT_APP_RESTAURANT_API_URL || "http://localhost:3000",
+  baseURL: RESTAURANT_API_BASE_URL,
 });
 
 adminClient.interceptors.request.use((config) => {
@@ -137,8 +138,7 @@ export const deactivateAdminUser = async (id) => {
   return data;
 };
 
-export const getAdminApiBaseUrl = () =>
-  process.env.REACT_APP_RESTAURANT_API_URL || "http://localhost:3000";
+export const getAdminApiBaseUrl = () => RESTAURANT_API_BASE_URL;
 
 // Subscription plans
 export const listSubscriptionPlans = async () => {

@@ -3,6 +3,11 @@ export const ADMIN_BASE = "/admin";
 
 export const routes = {
   home: "/",
+  about: "/about",
+  contact: "/contact",
+  terms: "/terms",
+  privacy: "/privacy",
+  refundPolicy: "/refund-policy",
   trackOrders: `${QR_BASE}/track-orders`,
   paymentStatus: `${QR_BASE}/payment/status`,
   restaurant: (slug) => `${QR_BASE}/${slug}`,

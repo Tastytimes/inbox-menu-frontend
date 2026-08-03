@@ -7,6 +7,11 @@ import OrderLookupPage from "./OrderLookupPage";
 import PaymentStatusPage from "./PaymentStatusPage";
 import RestaurantPage from "./RestaurantPage";
 import InvalidUrl from "./InvalidUrl";
+import AboutPage from "./legal/AboutPage";
+import ContactPage from "./legal/ContactPage";
+import PrivacyPage from "./legal/PrivacyPage";
+import RefundPolicyPage from "./legal/RefundPolicyPage";
+import TermsPage from "./legal/TermsPage";
 import { routes } from "../utils/routes";
 
 const AdminApp = React.lazy(() => import("../admin/AdminApp"));
@@ -29,6 +34,11 @@ const Body = () => {
   return (
     <Routes>
       <Route path={routes.home} element={<HomePage />} />
+      <Route path={routes.about} element={<AboutPage />} />
+      <Route path={routes.contact} element={<ContactPage />} />
+      <Route path={routes.terms} element={<TermsPage />} />
+      <Route path={routes.privacy} element={<PrivacyPage />} />
+      <Route path={routes.refundPolicy} element={<RefundPolicyPage />} />
       <Route
         path="/admin/*"
         element={
