@@ -41,6 +41,8 @@ const CheckoutSummary = ({ summary, items = [], pricing }) => {
   const hasExtraCharges = extraCharges.length > 0;
   const showSubtotalLine = hasParcelCharges || hasExtraCharges;
   const payAmount = pricing?.customerPayAmount ?? grandTotal;
+  const showPlatformFee =
+    pricing != null && Number(pricing.platformFeeAmount) > 0;
 
   return (
     <section className="checkout-summary" aria-label="Bill summary">
@@ -87,7 +89,7 @@ const CheckoutSummary = ({ summary, items = [], pricing }) => {
           </>
         )}
 
-        {pricing && (
+        {showPlatformFee && (
           <>
             <div className="checkout-summary__divider" />
             <SummaryRow

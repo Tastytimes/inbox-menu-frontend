@@ -9,6 +9,7 @@ export const routes = {
   privacy: "/privacy",
   refundPolicy: "/refund-policy",
   trackOrders: `${QR_BASE}/track-orders`,
+  trackOrder: (token) => `/track/${token}`,
   paymentStatus: `${QR_BASE}/payment/status`,
   restaurant: (slug) => `${QR_BASE}/${slug}`,
   checkoutContact: (slug) => `${QR_BASE}/${slug}/checkout/contact`,

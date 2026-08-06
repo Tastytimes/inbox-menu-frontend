@@ -12,8 +12,13 @@ export const addToCart = async (payload) => {
   return data;
 };
 
-export const updateCartQuantity = async (payload) => {
-  const { data } = await restaurantClient.post("/user/cart/update-quantity", payload);
+export const updateCartQuantity = async ({ slug, cartId, foodId, quantity }) => {
+  const { data } = await restaurantClient.post("/user/cart/update-quantity", {
+    slug,
+    cartId,
+    foodId: Number(foodId),
+    quantity: Number(quantity),
+  });
   return data;
 };
 

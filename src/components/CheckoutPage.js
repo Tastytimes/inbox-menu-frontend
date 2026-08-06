@@ -9,7 +9,8 @@ import {
 } from "../utils/customerStorage";
 import { launchCashfreePayment } from "../utils/paymentFlow";
 import { routes } from "../utils/routes";
-import CheckoutItemRow from "./restaurant/CheckoutItemRow";
+import OrderItemGroup from "./restaurant/OrderItemGroup";
+import { groupOrderItems } from "../utils/orderItemGroups";
 import CheckoutSummary from "./restaurant/CheckoutSummary";
 import CustomerSummary from "./restaurant/CustomerSummary";
 import OrderMixSummary from "./restaurant/OrderMixSummary";
@@ -113,8 +114,9 @@ const CheckoutPage = () => {
     );
   }
 
+  const pricing = checkoutPricing ?? cart?.pricing ?? null;
   const payAmount =
-    checkoutPricing?.customerPayAmount ?? cart.summary?.grandTotal ?? 0;
+    pricing?.customerPayAmount ?? cart.summary?.grandTotal ?? 0;
 
   return (
     <div className="checkout-page">
@@ -135,9 +137,9 @@ const CheckoutPage = () => {
 
       <section className="checkout-page__section">
         <h2 className="checkout-page__section-title">Your items</h2>
-        <ul className="checkout-page__items">
-          {cart.items.map((item) => (
-            <CheckoutItemRow key={item.foodId} item={item} />
+        <ul className="checkout-page__items checkout-page__items--grouped">
+          {groupOrderItems(cart.items).map((group) => (
+            <OrderItemGroup key={group.key} group={group} showCounterStatus={false} />
           ))}
         </ul>
       </section>
@@ -145,7 +147,7 @@ const CheckoutPage = () => {
       <CheckoutSummary
         summary={cart.summary}
         items={cart.items}
-        pricing={checkoutPricing}
+        pricing={pricing}
       />
 
       <div className="checkout-pay">

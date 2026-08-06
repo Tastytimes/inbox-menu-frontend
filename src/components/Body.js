@@ -4,6 +4,7 @@ import CheckoutPage from "./CheckoutPage";
 import ContactDetailsPage from "./ContactDetailsPage";
 import HomePage from "./HomePage";
 import OrderLookupPage from "./OrderLookupPage";
+import OrderTrackingPage from "./OrderTrackingPage";
 import PaymentStatusPage from "./PaymentStatusPage";
 import RestaurantPage from "./RestaurantPage";
 import InvalidUrl from "./InvalidUrl";
@@ -53,6 +54,7 @@ const Body = () => {
       <Route path="/qr/:slug/checkout/contact" element={<ContactDetailsPage />} />
       <Route path="/qr/:slug/checkout" element={<CheckoutPage />} />
       <Route path="/qr/:slug" element={<RestaurantPage />} />
+      <Route path="/track/:token" element={<OrderTrackingPage />} />
       <Route path="/track-orders" element={<Navigate to={routes.trackOrders} replace />} />
       <Route path="/payment/status" element={<Navigate to={routes.paymentStatus} replace />} />
       <Route path="/:slug/*" element={<QrLegacyRedirect />} />

@@ -1,7 +1,9 @@
 import React from "react";
 import { countOrderTypes } from "../../utils/parcelHelpers";
-import CheckoutItemRow from "./CheckoutItemRow";
+import { groupOrderItems, resolveCounterStatuses } from "../../utils/orderItemGroups";
 import CheckoutSummary from "./CheckoutSummary";
+import CounterStatusPanel from "./CounterStatusPanel";
+import OrderItemGroup from "./OrderItemGroup";
 
 const formatAmount = (value) => {
   const num = Number(value);
@@ -14,70 +16,90 @@ const OrderDetailsCard = ({ order }) => {
 
   const { takeaway, dineIn } = countOrderTypes(order.items ?? []);
   const items = order.items ?? [];
+  const groupedItems = groupOrderItems(items);
+  const counterStatuses = resolveCounterStatuses(order.counterTickets ?? []);
+  const hasCounterTickets = (order.counterTickets ?? []).length > 0;
+  const isMixedOrder = takeaway > 0 && dineIn > 0;
 
   return (
-    <section className="order-details-card" aria-label="Order details">
-      <h2 className="order-details-card__heading">Order details</h2>
+    <>
+      <section className="order-details-card" aria-label="Order details">
+        <h2 className="order-details-card__heading">Order details</h2>
 
-      <div className="order-details-card__meta">
-        {order.orderNo && (
+        <div className="order-details-card__meta">
+          {order.orderNo && (
+            <div className="order-details-card__meta-row">
+              <span>Order no</span>
+              <strong className="order-details-card__order-no">{order.orderNo}</strong>
+            </div>
+          )}
           <div className="order-details-card__meta-row">
-            <span>Order no</span>
-            <strong className="order-details-card__order-no">{order.orderNo}</strong>
+            <span>Order ref</span>
+            <strong>{order.orderReference}</strong>
           </div>
-        )}
-        <div className="order-details-card__meta-row">
-          <span>Order ref</span>
-          <strong>{order.orderReference}</strong>
+          {order.tableNo && (
+            <div className="order-details-card__meta-row">
+              <span>Table</span>
+              <strong>{order.tableNo}</strong>
+            </div>
+          )}
+          {(takeaway > 0 || dineIn > 0) && (
+            <div className="order-details-card__meta-row">
+              <span>Order type</span>
+              <span className="order-details-card__mix">
+                {takeaway > 0 && (
+                  <span className="checkout-page__type-chip checkout-page__type-chip--takeaway">
+                    {takeaway} takeaway
+                  </span>
+                )}
+                {dineIn > 0 && (
+                  <span className="checkout-page__type-chip checkout-page__type-chip--dinein">
+                    {dineIn} dine in
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          <div className="order-details-card__meta-row">
+            <span>Amount paid</span>
+            <strong>₹{formatAmount(order.pricing?.customerPayAmount)}</strong>
+          </div>
         </div>
-        {order.tableNo && (
-          <div className="order-details-card__meta-row">
-            <span>Table</span>
-            <strong>{order.tableNo}</strong>
-          </div>
-        )}
-        {(takeaway > 0 || dineIn > 0) && (
-          <div className="order-details-card__meta-row">
-            <span>Order type</span>
-            <span className="order-details-card__mix">
-              {takeaway > 0 && (
-                <span className="checkout-page__type-chip checkout-page__type-chip--takeaway">
-                  {takeaway} takeaway
-                </span>
-              )}
-              {dineIn > 0 && (
-                <span className="checkout-page__type-chip checkout-page__type-chip--dinein">
-                  {dineIn} dine in
-                </span>
-              )}
-            </span>
-          </div>
-        )}
-        <div className="order-details-card__meta-row">
-          <span>Amount paid</span>
-          <strong>₹{formatAmount(order.pricing?.customerPayAmount)}</strong>
-        </div>
-      </div>
 
-      {items.length > 0 && (
-        <>
-          <h3 className="order-details-card__subheading">Items</h3>
-          <ul className="checkout-page__items order-details-card__items">
-            {items.map((item) => (
-              <CheckoutItemRow key={item.foodId} item={item} />
-            ))}
-          </ul>
-        </>
-      )}
+        {groupedItems.length > 0 && (
+          <>
+            <h3 className="order-details-card__subheading">Items</h3>
+            {isMixedOrder && (
+              <p className="order-details-card__items-hint">
+                Same dish can appear once with separate dine-in and takeaway counts below.
+              </p>
+            )}
+            <ul className="checkout-page__items order-details-card__items order-details-card__items--grouped">
+              {groupedItems.map((group) => (
+                <OrderItemGroup
+                  key={group.key}
+                  group={group}
+                  counterStatuses={counterStatuses}
+                  showCounterStatus={hasCounterTickets}
+                />
+              ))}
+            </ul>
+          </>
+        )}
 
-      {order.summary && (
-        <CheckoutSummary
-          summary={order.summary}
-          items={items}
-          pricing={order.pricing}
-        />
+        {order.summary && (
+          <CheckoutSummary
+            summary={order.summary}
+            items={items}
+            pricing={order.pricing}
+          />
+        )}
+      </section>
+
+      {hasCounterTickets && (
+        <CounterStatusPanel counterTickets={order.counterTickets} />
       )}
-    </section>
+    </>
   );
 };
 

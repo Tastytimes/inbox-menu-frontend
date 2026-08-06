@@ -9,9 +9,9 @@ import {
 import CheckoutFooter from "./restaurant/CheckoutFooter";
 import CategoryTabs from "./restaurant/CategoryTabs";
 import FoodItemCard from "./restaurant/FoodItemCard";
-import OrderTypeModal from "./restaurant/OrderTypeModal";
 import RestaurantHeader from "./restaurant/RestaurantHeader";
 import { getStoredCartId, setStoredCartId } from "../utils/cartStorage";
+import { findCartLine, getFoodCartCounts } from "../utils/parcelHelpers";
 import { setLastRestaurantSlug } from "../utils/customerStorage";
 import { routes } from "../utils/routes";
 import "./restaurant/RestaurantMenu.css";
@@ -23,23 +23,13 @@ const RestaurantPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [cart, setCart] = useState(null);
-  const [pendingFood, setPendingFood] = useState(null);
-  const [updatingFoodId, setUpdatingFoodId] = useState(null);
-  const [cartLoading, setCartLoading] = useState(false);
+  const [updatingKey, setUpdatingKey] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = useCallback((message, isError = false) => {
     setToast({ message, isError });
     setTimeout(() => setToast(null), 2800);
   }, []);
-
-  const cartQuantities = useMemo(() => {
-    const map = {};
-    cart?.items?.forEach((item) => {
-      map[item.foodId] = item.quantity;
-    });
-    return map;
-  }, [cart]);
 
   const loadCart = useCallback(async () => {
     const cartId = getStoredCartId(slug);
@@ -62,8 +52,8 @@ const RestaurantPage = () => {
   );
 
   const runCartUpdate = useCallback(
-    async (foodId, updater) => {
-      setUpdatingFoodId(foodId);
+    async (key, foodId, updater) => {
+      setUpdatingKey(key);
       try {
         const response = await updater();
         await syncCart(response);
@@ -72,7 +62,7 @@ const RestaurantPage = () => {
           err.response?.data?.message || "Could not update cart. Please try again.";
         showToast(message, true);
       } finally {
-        setUpdatingFoodId(null);
+        setUpdatingKey(null);
       }
     },
     [syncCart, showToast]
@@ -130,77 +120,50 @@ const RestaurantPage = () => {
     [categories, activeCategoryId]
   );
 
-  const handleAddClick = (food) => {
-    setPendingFood(food);
-  };
+  const handleAdd = useCallback(
+    (food, isParcel) => {
+      const key = `${food.id}-${isParcel ? "parcel" : "dinein"}`;
+      const cartId = getStoredCartId(slug);
 
-  const handleOrderTypeSelect = async (isParcel) => {
-    if (!pendingFood) return;
+      runCartUpdate(key, food.id, async () => {
+        const payload = {
+          slug,
+          foodId: food.id,
+          quantity: 1,
+          isParcel,
+        };
+        if (cartId) {
+          payload.cartId = cartId;
+        }
+        const response = await addToCart(payload);
+        showToast(`${food.name} added (${isParcel ? "parcel" : "dine-in"})`);
+        return response;
+      });
+    },
+    [slug, runCartUpdate, showToast]
+  );
 
-    setCartLoading(true);
-    setUpdatingFoodId(pendingFood.id);
+  const handleRemove = useCallback(
+    (food, isParcel) => {
+      const cartId = getStoredCartId(slug);
+      if (!cartId || !cart) return;
 
-    try {
-      const payload = {
-        slug,
-        foodId: pendingFood.id,
-        quantity: 1,
-        isParcel,
-      };
-      const storedCartId = getStoredCartId(slug);
-      if (storedCartId) {
-        payload.cartId = storedCartId;
-      }
+      const cartItem = findCartLine(cart.items, food.id, isParcel);
+      if (!cartItem || cartItem.quantity <= 0) return;
 
-      const cartResponse = await addToCart(payload);
-      await syncCart(cartResponse);
-      setPendingFood(null);
-      showToast(`${pendingFood.name} added to cart`);
-    } catch (err) {
-      const message =
-        err.response?.data?.message || "Could not add item. Please try again.";
-      showToast(message, true);
-    } finally {
-      setCartLoading(false);
-      setUpdatingFoodId(null);
-    }
-  };
+      const key = `${food.id}-${isParcel ? "parcel" : "dinein"}`;
 
-  const handleIncrement = (food) => {
-    const cartId = getStoredCartId(slug);
-    if (!cartId || !cart) {
-      handleAddClick(food);
-      return;
-    }
-
-    const cartItem = cart.items.find((entry) => entry.foodId === food.id);
-    runCartUpdate(food.id, () =>
-      addToCart({
-        slug,
-        cartId,
-        foodId: food.id,
-        quantity: 1,
-        isParcel: cartItem?.isParcel ?? false,
-      })
-    );
-  };
-
-  const handleDecrement = (food) => {
-    const cartId = getStoredCartId(slug);
-    const currentQty = cartQuantities[food.id] ?? 0;
-    if (!cartId || currentQty === 0) return;
-
-    const nextQty = currentQty - 1;
-
-    runCartUpdate(food.id, () =>
-      updateCartQuantity({
-        slug,
-        cartId,
-        foodId: food.id,
-        quantity: nextQty,
-      })
-    );
-  };
+      runCartUpdate(key, food.id, () =>
+        updateCartQuantity({
+          slug,
+          cartId,
+          foodId: food.id,
+          quantity: cartItem.quantity - 1,
+        })
+      );
+    },
+    [slug, cart, runCartUpdate]
+  );
 
   if (loading) {
     return (
@@ -245,17 +208,24 @@ const RestaurantPage = () => {
               <p className="menu-section__desc">{activeCategory.description}</p>
             )}
             <div className="food-list">
-              {(activeCategory.foodItems ?? []).map((item) => (
-                <FoodItemCard
-                  key={item.id}
-                  item={item}
-                  quantity={cartQuantities[item.id] ?? 0}
-                  updating={updatingFoodId === item.id}
-                  onAddToCart={handleAddClick}
-                  onIncrement={handleIncrement}
-                  onDecrement={handleDecrement}
-                />
-              ))}
+              {(activeCategory.foodItems ?? []).map((item) => {
+                const { dineIn, parcel } = getFoodCartCounts(cart?.items, item.id);
+                return (
+                  <FoodItemCard
+                    key={item.id}
+                    item={item}
+                    categoryName={activeCategory.categoryName}
+                    dineInQty={dineIn}
+                    parcelQty={parcel}
+                    onAddDineIn={(food) => handleAdd(food, false)}
+                    onAddParcel={(food) => handleAdd(food, true)}
+                    onRemoveDineIn={(food) => handleRemove(food, false)}
+                    onRemoveParcel={(food) => handleRemove(food, true)}
+                    updatingDineIn={updatingKey === `${item.id}-dinein`}
+                    updatingParcel={updatingKey === `${item.id}-parcel`}
+                  />
+                );
+              })}
             </div>
           </>
         ) : (
@@ -264,14 +234,6 @@ const RestaurantPage = () => {
       </main>
 
       <CheckoutFooter cart={cart} slug={slug} visible={hasCartItems} />
-
-      <OrderTypeModal
-        show={!!pendingFood}
-        foodName={pendingFood?.name}
-        loading={cartLoading}
-        onClose={() => !cartLoading && setPendingFood(null)}
-        onSelect={handleOrderTypeSelect}
-      />
 
       {toast && (
         <div

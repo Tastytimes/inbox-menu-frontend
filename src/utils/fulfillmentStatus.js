@@ -1,4 +1,4 @@
-export const ACTIVE_FULFILLMENT_STATUSES = ["placed", "accepted", "ready"];
+export const ACTIVE_FULFILLMENT_STATUSES = ["placed", "accepted", "preparing", "ready"];
 
 export const TERMINAL_FULFILLMENT_STATUSES = [
   "delivered",
@@ -11,6 +11,7 @@ export const MAX_POLLABLE_ORDERS = 3;
 const FULFILLMENT_LABELS = {
   placed: "Placed",
   accepted: "Accepted",
+  preparing: "Preparing",
   ready: "Ready",
   delivered: "Delivered",
   cancelled: "Cancelled",
@@ -65,6 +66,8 @@ export const getFulfillmentUpdateMessage = (order, previousStatus, nextStatus) =
   switch (next) {
     case "accepted":
       return `${label} — Kitchen has accepted your order`;
+    case "preparing":
+      return `${label} — Your food is being prepared`;
     case "ready":
       return `${label} is ready! Collect your food at the counter.`;
     case "delivered":

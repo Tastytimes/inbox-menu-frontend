@@ -43,6 +43,13 @@ export const checkoutOrder = async (params) => {
   return data;
 };
 
+export const trackOrderByToken = async (trackingToken) => {
+  const { data } = await restaurantClient.get(
+    `/user/orders/track/${encodeURIComponent(trackingToken)}`
+  );
+  return data;
+};
+
 export const getOrder = async (orderId) => {
   const { data } = await restaurantClient.get(`/user/orders/${orderId}`);
   return data;
