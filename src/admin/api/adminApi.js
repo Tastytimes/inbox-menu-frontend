@@ -233,3 +233,94 @@ export const getRefundStatus = async (orderId, { signal } = {}) => {
   );
   return data;
 };
+
+export const listSupportConversations = async ({ status, search, page, limit } = {}) => {
+  const params = {};
+  if (status) params.status = status;
+  if (search) params.search = search;
+  if (page) params.page = page;
+  if (limit) params.limit = limit;
+
+  const { data } = await adminClient.get("/admin/platform/support/conversations", { params });
+  return data;
+};
+
+export const getSupportUnreadCount = async () => {
+  const { data } = await adminClient.get("/admin/platform/support/conversations/unread-count");
+  return data;
+};
+
+export const fetchSupportMediaBlob = async (mediaId) => {
+  const { data } = await adminClient.get(`/admin/platform/support/media/${mediaId}`, {
+    responseType: "blob",
+  });
+  return data;
+};
+
+export const getSupportConversation = async (conversationId) => {
+  const { data } = await adminClient.get(
+    `/admin/platform/support/conversations/${conversationId}`
+  );
+  return data;
+};
+
+export const assignSupportConversation = async (conversationId) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/assign`
+  );
+  return data;
+};
+
+export const replySupportConversation = async (conversationId, message) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/reply`,
+    { message }
+  );
+  return data;
+};
+
+export const sendSupportTemplate = async (conversationId, payload = {}) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/reply-template`,
+    payload
+  );
+  return data;
+};
+
+export const retrySupportMessage = async (conversationId, messageId) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/messages/${messageId}/retry`
+  );
+  return data;
+};
+
+export const replySupportConversationMedia = async (conversationId, file, caption = "") => {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (caption.trim()) {
+    formData.append("caption", caption.trim());
+  }
+
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/reply-media`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
+  );
+  return data;
+};
+
+export const resolveSupportConversation = async (conversationId) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/resolve`
+  );
+  return data;
+};
+
+export const reopenSupportConversation = async (conversationId) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/support/conversations/${conversationId}/reopen`
+  );
+  return data;
+};

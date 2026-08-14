@@ -119,6 +119,55 @@
   color: var(--text);
 }
 
+.legal-pricing-block {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.legal-pricing-block h3 {
+  font-size: 1rem;
+  margin: 0 0 0.4rem;
+}
+
+.legal-pricing-block p {
+  margin-bottom: 0.35rem;
+}
+
+.legal-pricing-block__example {
+  font-size: 0.85rem;
+  color: #c2410c;
+  margin: 0;
+}
+
+.whatsapp-chat-button,
+.legal-page__whatsapp-btn,
+.order-track-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.25);
+}
+
+.whatsapp-chat-button:hover,
+.legal-page__whatsapp-btn:hover,
+.order-track-whatsapp-btn:hover {
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.order-track-whatsapp-btn {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
 .site-footer {
   background: #111;
   color: #aaa;

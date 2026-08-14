@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { BRAND_NAME } from "../../constants/brand";
+import WhatsAppChatButton from "../support/WhatsAppChatButton";
 import {
   COMPANY_ADDRESS,
   COMPANY_CIN,
@@ -59,10 +60,11 @@ const ContactPage = () => (
       <Link to={routes.trackOrders}>Track Orders</Link> page or contact the restaurant directly.
     </p>
     <p>
-      For platform or billing questions, email us at{" "}
+      For platform or billing questions, chat with our support team on WhatsApp or email us at{" "}
       <a href={`mailto:${COMPANY_SUPPORT_EMAIL}`}>{COMPANY_SUPPORT_EMAIL}</a> and include your
       restaurant name and registered phone number.
     </p>
+    <WhatsAppChatButton className="legal-page__whatsapp-btn" />
 
     <h2>Business hours</h2>
     <p>Monday to Saturday, 10:00 AM – 6:00 PM IST (excluding public holidays).</p>

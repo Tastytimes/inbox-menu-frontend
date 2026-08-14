@@ -6,16 +6,16 @@ export const COMPANY_LEGAL_NAME =
 
 export const COMPANY_ADDRESS =
   process.env.REACT_APP_COMPANY_ADDRESS ||
-  "No. 123, Example Tech Park, Koramangala, Bengaluru, Karnataka 560034, India";
+  "#FFo3, Sri Subramanya Swamy Enclave, near Indrani Shooting House, Gubbalalla, Bengaluru, Karnataka 560060, India";
 
 export const COMPANY_PHONE =
-  process.env.REACT_APP_COMPANY_PHONE || "+91 98765 43210";
+  process.env.REACT_APP_COMPANY_PHONE || "+91 9900547999";
 
-export const COMPANY_GST = process.env.REACT_APP_COMPANY_GST || "";
+export const COMPANY_GST = process.env.REACT_APP_COMPANY_GST || "29CRVPD7376N1ZM";
 
 export const COMPANY_CIN = process.env.REACT_APP_COMPANY_CIN || "";
 
 export const COMPANY_SUPPORT_EMAIL = process.env.REACT_APP_COMPANY_SUPPORT_EMAIL || BRAND_EMAIL;
 
 export const COMPANY_WEBSITE =
-  process.env.REACT_APP_COMPANY_WEBSITE || "https://sambhrama.com";
+  process.env.REACT_APP_COMPANY_WEBSITE || "https://sambhramaa.in";

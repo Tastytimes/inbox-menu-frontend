@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { BRAND_NAME, BRAND_TAGLINE } from "../../constants/brand";
 import {
   COMPANY_ADDRESS,
@@ -9,6 +10,8 @@ import {
   COMPANY_SUPPORT_EMAIL,
   COMPANY_WEBSITE,
 } from "../../constants/company";
+import { CURRENCY_CODE, CURRENCY_SYMBOL, PRICING_HIGHLIGHTS } from "../../constants/pricing";
+import { routes } from "../../utils/routes";
 import LegalPageLayout from "./LegalPageLayout";
 
 const AboutPage = () => (
@@ -62,10 +65,27 @@ const AboutPage = () => (
     <h2>What we offer</h2>
     <ul>
       <li>QR-based digital menus for dine-in and takeaway</li>
-      <li>Integrated online payments via secure payment partners</li>
+      <li>Integrated online payments in {CURRENCY_CODE} ({CURRENCY_SYMBOL}) via Cashfree</li>
       <li>Real-time order tracking for customers</li>
       <li>Kitchen and admin tools for restaurant partners</li>
     </ul>
+
+    <h2>Pricing &amp; currency</h2>
+    <p>
+      Menu prices are set by each restaurant and displayed in Indian Rupee ({CURRENCY_CODE},{" "}
+      {CURRENCY_SYMBOL}). Takeaway packaging fees and taxes are shown in INR at checkout before
+      payment. Restaurant partner subscriptions are also billed in INR.
+    </p>
+    <ul>
+      {PRICING_HIGHLIGHTS.slice(0, 3).map((item) => (
+        <li key={item.title}>
+          <strong>{item.title}:</strong> {item.example}
+        </li>
+      ))}
+    </ul>
+    <p>
+      <Link to={routes.pricing}>View full pricing &amp; currency details →</Link>
+    </p>
   </LegalPageLayout>
 );
 

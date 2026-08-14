@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { BRAND_NAME } from "../../constants/brand";
 import { COMPANY_LEGAL_NAME } from "../../constants/company";
+import { CURRENCY_CODE, CURRENCY_SYMBOL } from "../../constants/pricing";
 import { routes } from "../../utils/routes";
 import "./legalPages.css";
 
@@ -16,6 +17,7 @@ const SiteFooter = () => (
         <nav className="site-footer__links" aria-label="Legal and support links">
           <Link to={routes.about}>About Us</Link>
           <Link to={routes.contact}>Contact</Link>
+          <Link to={routes.pricing}>Pricing (INR)</Link>
           <Link to={routes.terms}>Terms &amp; Conditions</Link>
           <Link to={routes.privacy}>Privacy Policy</Link>
           <Link to={routes.refundPolicy}>Refund Policy</Link>
@@ -23,7 +25,7 @@ const SiteFooter = () => (
         </nav>
       </div>
       <p className="site-footer__copy">
-        © {new Date().getFullYear()} {COMPANY_LEGAL_NAME}. All rights reserved.
+        © {new Date().getFullYear()} {COMPANY_LEGAL_NAME}. All prices in {CURRENCY_CODE} ({CURRENCY_SYMBOL}).
       </p>
     </div>
   </footer>

@@ -3,16 +3,18 @@ import { Link } from "react-router-dom";
 import { BRAND_NAME } from "../../constants/brand";
 import {
   COMPANY_ADDRESS,
+  COMPANY_GST,
   COMPANY_LEGAL_NAME,
   COMPANY_SUPPORT_EMAIL,
   COMPANY_WEBSITE,
 } from "../../constants/company";
+import { CURRENCY_CODE, CURRENCY_LABEL, CURRENCY_SYMBOL } from "../../constants/pricing";
 import { routes } from "../../utils/routes";
 import LegalPageLayout from "./LegalPageLayout";
 
 const TermsPage = () => (
   <LegalPageLayout title="Terms & Conditions">
-    <p className="legal-page__meta">Last updated: 3 August 2026</p>
+    <p className="legal-page__meta">Last updated: 14 August 2026</p>
 
     <p>
       These Terms &amp; Conditions (&quot;Terms&quot;) govern your use of the {BRAND_NAME} website
@@ -33,10 +35,16 @@ const TermsPage = () => (
     <ul>
       <li>Orders placed via QR menus are contracts between you and the restaurant.</li>
       <li>
-        Payments are processed through authorised payment partners. {COMPANY_LEGAL_NAME} facilitates
+        Payments are processed through authorised payment partners in{" "}
+        {CURRENCY_LABEL} ({CURRENCY_CODE}, {CURRENCY_SYMBOL}). {COMPANY_LEGAL_NAME} facilitates
         payment collection on behalf of restaurant partners.
       </li>
-      <li>Prices, taxes, and availability are set by the restaurant and shown at checkout.</li>
+      <li>
+        Menu prices, packaging fees, taxes, and the final payable amount in INR (₹) are displayed
+        at checkout before you confirm payment. See our{" "}
+        <Link to={routes.pricing}>Pricing &amp; Currency</Link> page.
+      </li>
+      {COMPANY_GST && <li>GSTIN of {COMPANY_LEGAL_NAME}: {COMPANY_GST}</li>}
     </ul>
 
     <h2>3. User responsibilities</h2>

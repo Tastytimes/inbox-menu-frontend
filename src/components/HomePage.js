@@ -11,6 +11,7 @@ import {
 import { routes } from "../utils/routes";
 import HeroQrIllustration from "./home/HeroQrIllustration";
 import SiteFooter from "./legal/SiteFooter";
+import { PRICING_HIGHLIGHTS, CURRENCY_CODE, CURRENCY_SYMBOL } from "../constants/pricing";
 import "./home/HomePage.css";
 import "./legal/legalPages.css";
 
@@ -254,6 +255,31 @@ const HomePage = () => (
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" className="home-page__section home-page__section--alt">
+      <div className="container">
+        <h2 className="home-page__section-title">Pricing &amp; currency</h2>
+        <p className="home-page__section-sub">
+          All amounts on {BRAND_NAME} are shown in Indian Rupee — {CURRENCY_CODE} ({CURRENCY_SYMBOL}).
+        </p>
+        <div className="row g-4">
+          {PRICING_HIGHLIGHTS.map((item) => (
+            <div key={item.title} className="col-md-6">
+              <div className="home-page__pricing-card">
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <span className="home-page__pricing-example">{item.example}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-4">
+          <Link to={routes.pricing} className="home-page__btn home-page__btn--outline">
+            View full pricing details
+          </Link>
         </div>
       </div>
     </section>

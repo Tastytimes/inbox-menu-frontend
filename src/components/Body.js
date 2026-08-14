@@ -12,6 +12,7 @@ import AboutPage from "./legal/AboutPage";
 import ContactPage from "./legal/ContactPage";
 import PrivacyPage from "./legal/PrivacyPage";
 import RefundPolicyPage from "./legal/RefundPolicyPage";
+import PricingPage from "./legal/PricingPage";
 import TermsPage from "./legal/TermsPage";
 import { routes } from "../utils/routes";
 
@@ -40,6 +41,7 @@ const Body = () => {
       <Route path={routes.terms} element={<TermsPage />} />
       <Route path={routes.privacy} element={<PrivacyPage />} />
       <Route path={routes.refundPolicy} element={<RefundPolicyPage />} />
+      <Route path={routes.pricing} element={<PricingPage />} />
       <Route
         path="/admin/*"
         element={

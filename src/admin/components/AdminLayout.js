@@ -1,12 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { BRAND_LOGO, BRAND_NAME } from "../../constants/brand";
 import { useAdminAuth } from "../hooks/useAdminAuth";
+import { useSupportUnreadCount } from "../hooks/useSupportUnreadCount";
+import { requestSupportNotifications } from "../hooks/useAdminSocket";
 import { adminRoutes } from "../../utils/routes";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const { name, email, role, isSuperAdmin, signOut } = useAdminAuth();
+  const { unreadCount } = useSupportUnreadCount(true);
+
+  useEffect(() => {
+    void requestSupportNotifications();
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -51,6 +58,9 @@ const AdminLayout = () => {
           </NavLink>
           <NavLink to={adminRoutes.support} className={linkClass}>
             Customer care
+            {unreadCount > 0 ? (
+              <span className="admin-sidebar__badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+            ) : null}
           </NavLink>
           {isSuperAdmin && (
             <NavLink to={adminRoutes.users} className={linkClass}>

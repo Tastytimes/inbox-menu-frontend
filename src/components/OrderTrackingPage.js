@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { trackOrderByToken } from "../api/orderApi";
 import { useOrderTrackingSocket } from "../hooks/useOrderTrackingSocket";
+import WhatsAppChatButton from "./support/WhatsAppChatButton";
 import { getFulfillmentLabel } from "../utils/fulfillmentStatus";
 import { routes } from "../utils/routes";
 import OrderUpdateBanner from "./restaurant/OrderUpdateBanner";
@@ -253,6 +254,16 @@ const OrderTrackingPage = () => {
         <p className="order-track-footnote">
           Status updates automatically as the kitchen progresses your order.
         </p>
+
+        <WhatsAppChatButton
+          className="order-track-whatsapp-btn"
+          label="Need help? Chat with us"
+          prefillMessage={
+            tracking?.orderNo
+              ? `Hi, I need help with order ${tracking.orderNo}.`
+              : "Hi, I need help with my order."
+          }
+        />
       </div>
     </div>
   );
