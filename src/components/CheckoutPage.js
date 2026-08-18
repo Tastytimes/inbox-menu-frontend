@@ -7,7 +7,8 @@ import {
   getStoredCustomer,
   hasValidStoredCustomer,
 } from "../utils/customerStorage";
-import { launchCashfreePayment } from "../utils/paymentFlow";
+import { launchPayment, getPaymentProviderLabel } from "../utils/paymentFlow";
+import { unlockOrderUpdateSoundSync } from "../utils/orderNotificationSound";
 import { routes } from "../utils/routes";
 import OrderItemGroup from "./restaurant/OrderItemGroup";
 import { groupOrderItems } from "../utils/orderItemGroups";
@@ -15,6 +16,9 @@ import CheckoutSummary from "./restaurant/CheckoutSummary";
 import CustomerSummary from "./restaurant/CustomerSummary";
 import OrderMixSummary from "./restaurant/OrderMixSummary";
 import "./restaurant/RestaurantMenu.css";
+
+const PAYMENT_PROVIDER = process.env.REACT_APP_PAYMENT_PROVIDER || "payu";
+const PAYMENT_PROVIDER_LABEL = getPaymentProviderLabel(PAYMENT_PROVIDER);
 
 const CheckoutPage = () => {
   const { slug } = useParams();
@@ -37,11 +41,18 @@ const CheckoutPage = () => {
     if (!cartId) {
       setError("Your cart is empty");
       setCart(null);
-      return;
+      return null;
     }
     const cartData = await getCart(cartId, slug);
     setCart(cartData);
     setStoredCartId(slug, cartData.cartId);
+    return cartData;
+  }, [slug]);
+
+  const clearStaleCart = useCallback(() => {
+    setStoredCartId(slug, null);
+    setCart(null);
+    setCheckoutPricing(null);
   }, [slug]);
 
   useEffect(() => {
@@ -58,17 +69,36 @@ const CheckoutPage = () => {
   }, [slug, loadCart, navigate]);
 
   const handlePay = async () => {
-    const cartId = getStoredCartId(slug);
-    if (!cartId || !cart || !customer) {
+    if (!customer) {
       showToast("Cart is empty", true);
       return;
     }
 
     setPaying(true);
     try {
+      unlockOrderUpdateSoundSync();
+
+      let freshCart;
+      try {
+        freshCart = await loadCart();
+      } catch (err) {
+        clearStaleCart();
+        const message =
+          err.response?.data?.message ||
+          "Your cart expired. Go back to the menu and add items again.";
+        setError(message);
+        showToast(message, true);
+        return;
+      }
+
+      if (!freshCart?.items?.length) {
+        showToast("Cart is empty", true);
+        return;
+      }
+
       const checkout = await checkoutOrder({
         slug,
-        cartId,
+        cartId: freshCart.cartId,
         customerPhone: customer.customerPhone,
         customerName: customer.customerName,
         customerEmail: customer.customerEmail,
@@ -76,7 +106,7 @@ const CheckoutPage = () => {
 
       setCheckoutPricing(checkout.pricing);
 
-      const result = await launchCashfreePayment({
+      const result = await launchPayment({
         ...checkout,
         slug,
       });
@@ -89,6 +119,14 @@ const CheckoutPage = () => {
         err.response?.data?.message ||
         err.message ||
         "Checkout failed. Please try again.";
+      if (
+        err.response?.status === 404 ||
+        err.response?.status === 409 ||
+        /cart not found|already placed|expired/i.test(message)
+      ) {
+        clearStaleCart();
+        setError(message);
+      }
       showToast(message, true);
     } finally {
       setPaying(false);
@@ -152,7 +190,7 @@ const CheckoutPage = () => {
 
       <div className="checkout-pay">
         <p className="checkout-pay__secure">
-          Secured by <strong>Cashfree Payments</strong>
+          Secured by <strong>{PAYMENT_PROVIDER_LABEL}</strong>
         </p>
         <button
           type="button"
@@ -160,7 +198,9 @@ const CheckoutPage = () => {
           onClick={handlePay}
           disabled={paying}
         >
-          {paying ? "Redirecting to Cashfree…" : `Pay ₹${payAmount} with Cashfree`}
+          {paying
+            ? `Redirecting to ${PAYMENT_PROVIDER_LABEL}…`
+            : `Pay ₹${payAmount} with ${PAYMENT_PROVIDER_LABEL}`}
         </button>
       </div>
 

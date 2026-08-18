@@ -35,7 +35,7 @@ const TermsPage = () => (
     <ul>
       <li>Orders placed via QR menus are contracts between you and the restaurant.</li>
       <li>
-        Payments are processed through authorised payment partners in{" "}
+        Payments are processed through PayU and other authorised payment partners in{" "}
         {CURRENCY_LABEL} ({CURRENCY_CODE}, {CURRENCY_SYMBOL}). {COMPANY_LEGAL_NAME} facilitates
         payment collection on behalf of restaurant partners.
       </li>

@@ -294,6 +294,11 @@ const AdminOrderDetailView = ({
                 {displayOrder.paymentFailureReason}
               </div>
             )}
+            {displayOrder.payuPaymentMessage && (
+              <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
+                PayU: {displayOrder.payuPaymentMessage}
+              </p>
+            )}
             {displayOrder.cashfreePaymentMessage && (
               <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
                 Cashfree: {displayOrder.cashfreePaymentMessage}

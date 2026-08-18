@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { trackOrderByToken } from "../api/orderApi";
 import { useOrderTrackingSocket } from "../hooks/useOrderTrackingSocket";
+import { useOrderStatusSoundUnlock } from "../hooks/useOrderStatusSoundUnlock";
 import WhatsAppChatButton from "./support/WhatsAppChatButton";
-import { getFulfillmentLabel } from "../utils/fulfillmentStatus";
+import { getFulfillmentLabel, getFulfillmentUpdateMessage } from "../utils/fulfillmentStatus";
+import { notifyOrderStatusSound } from "../utils/orderNotificationSound";
 import { routes } from "../utils/routes";
 import OrderUpdateBanner from "./restaurant/OrderUpdateBanner";
 import CounterStatusPanel from "./restaurant/CounterStatusPanel";
@@ -64,6 +66,13 @@ const OrderTrackingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [updateBanner, setUpdateBanner] = useState("");
+  const trackingRef = useRef(null);
+
+  useOrderStatusSoundUnlock();
+
+  useEffect(() => {
+    trackingRef.current = tracking;
+  }, [tracking]);
 
   const loadTracking = useCallback(async () => {
     if (!token) {
@@ -90,12 +99,23 @@ const OrderTrackingPage = () => {
   }, [loadTracking]);
 
   const handleTrackingUpdate = useCallback((next) => {
-    setTracking((current) => {
-      if (current && current.fulfillmentStatus !== next.fulfillmentStatus) {
-        setUpdateBanner(next.statusLabel || "Order status updated");
-      }
-      return next;
-    });
+    const current = trackingRef.current;
+    if (current && current.fulfillmentStatus !== next.fulfillmentStatus) {
+      notifyOrderStatusSound({
+        status: next.fulfillmentStatus,
+        previousStatus: current.fulfillmentStatus,
+      });
+      const message =
+        getFulfillmentUpdateMessage(
+          next,
+          current.fulfillmentStatus,
+          next.fulfillmentStatus
+        ) ||
+        next.statusLabel ||
+        "Order status updated";
+      setUpdateBanner(message);
+    }
+    setTracking(next);
   }, []);
 
   const { connected } = useOrderTrackingSocket(token, handleTrackingUpdate);

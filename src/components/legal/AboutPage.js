@@ -65,7 +65,7 @@ const AboutPage = () => (
     <h2>What we offer</h2>
     <ul>
       <li>QR-based digital menus for dine-in and takeaway</li>
-      <li>Integrated online payments in {CURRENCY_CODE} ({CURRENCY_SYMBOL}) via Cashfree</li>
+      <li>Integrated online payments in {CURRENCY_CODE} ({CURRENCY_SYMBOL}) via PayU</li>
       <li>Real-time order tracking for customers</li>
       <li>Kitchen and admin tools for restaurant partners</li>
     </ul>

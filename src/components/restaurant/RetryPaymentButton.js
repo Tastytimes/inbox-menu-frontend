@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { retryOrderPayment } from "../../api/orderApi";
-import { canRetryPayment, launchCashfreePayment } from "../../utils/paymentFlow";
+import { canRetryPayment, launchPayment } from "../../utils/paymentFlow";
 
 const RetryPaymentButton = ({
   order,
@@ -19,7 +19,7 @@ const RetryPaymentButton = ({
     setRetrying(true);
     try {
       const response = await retryOrderPayment(order.orderId);
-      const result = await launchCashfreePayment({
+      const result = await launchPayment({
         ...response,
         slug: response.slug || order.slug,
       });
@@ -45,7 +45,7 @@ const RetryPaymentButton = ({
       onClick={handleRetry}
       disabled={retrying}
     >
-      {retrying ? "Redirecting to Cashfree…" : label}
+      {retrying ? "Redirecting to payment…" : label}
     </button>
   );
 };

@@ -9,11 +9,16 @@ import { formatAdminAmount, formatAdminTime, formatOrderLabel } from "../utils/a
 import { getRefundReasonLabel } from "../utils/subscriptionAdminHelpers";
 import {
   getDefaultRefundAmount,
+  getPaymentProviderLabel,
   getRefundStatusLabel,
   hasRefundStarted,
   isRefundComplete,
+  isRefundFailed,
+  isRefundFailedStatus,
   mergeRefundSnapshot,
   normalizeRefundStatusResponse,
+  resolveGatewayRefundStatus,
+  resolveRefundProvider,
 } from "../utils/refundHelpers";
 
 const REFUND_STEPS = [
@@ -69,19 +74,42 @@ const AdminRefundPanel = ({
     [refundInfo, refundStatusData, order]
   );
 
+  const paymentProvider = resolveRefundProvider(refundSnapshot) ?? resolveRefundProvider(order);
+  const gatewayLabel = getPaymentProviderLabel(paymentProvider);
+
   const displayStatus =
     refundSnapshot.currentStatus ??
+    refundSnapshot.payuRefundStatus ??
     refundSnapshot.cashfreeRefundStatus ??
     refundSnapshot.refundStatus;
 
+  const gatewayRefundStatus = resolveGatewayRefundStatus(refundSnapshot);
+
   const isRefunded = isRefundComplete(displayStatus);
+  const refundFailed =
+    isRefundFailed(refundSnapshot) ||
+    isRefundFailedStatus(displayStatus) ||
+    isRefundFailedStatus(gatewayRefundStatus);
   const refundStarted = hasRefundStarted(refundSnapshot);
 
   const canRefund =
     !isRefunded &&
-    !refundStarted &&
+    (!refundStarted || refundFailed) &&
     (refundInfo ||
       ["paid", "PAID", "success", "SUCCESS"].includes(String(order?.paymentStatus || "")));
+
+  const openRefundForm = useCallback(() => {
+    setRefundForm({
+      refundNote: refundSnapshot.refundNote || "",
+      refundAmount:
+        refundSnapshot.refundAmount != null
+          ? String(refundSnapshot.refundAmount)
+          : getDefaultRefundAmount(order, refundInfo),
+    });
+    setShowRefundForm(true);
+    setError("");
+    setSuccessMessage("");
+  }, [refundSnapshot.refundNote, refundSnapshot.refundAmount, order, refundInfo]);
 
   const activeStep = useMemo(() => {
     if (isRefunded || refundStarted) return "status";
@@ -101,13 +129,13 @@ const AdminRefundPanel = ({
         ...current,
         refundAmount: getDefaultRefundAmount(order, data) || current.refundAmount,
       }));
-      setSuccessMessage("Refund detail refreshed from Cashfree.");
+      setSuccessMessage(`Refund detail refreshed from ${gatewayLabel}.`);
     } catch (err) {
       setError(err.response?.data?.message || "Could not load refund detail.");
     } finally {
       setLoadingDetail(false);
     }
-  }, [orderId, order]);
+  }, [orderId, order, gatewayLabel]);
 
   const handleCheckStatus = useCallback(async () => {
     if (!orderId) return;
@@ -119,7 +147,7 @@ const AdminRefundPanel = ({
       const normalized = normalizeRefundStatusResponse(data);
       setRefundStatusData(normalized);
       setStatusCheckedAt(new Date().toISOString());
-      setSuccessMessage(data.message || "Refund status synced from Cashfree.");
+      setSuccessMessage(data.message || `Refund status synced from ${gatewayLabel}.`);
       onRefundInfoUpdate?.(
         normalized?.order
           ? { ...normalized, ...normalized.order }
@@ -134,7 +162,7 @@ const AdminRefundPanel = ({
     } finally {
       setCheckingStatus(false);
     }
-  }, [orderId, onOrderRefresh, onRefunded, onRefundInfoUpdate]);
+  }, [orderId, onOrderRefresh, onRefunded, onRefundInfoUpdate, gatewayLabel]);
 
   useEffect(() => {
     if (!autoCheckOnMount || !orderId) return;
@@ -151,7 +179,11 @@ const AdminRefundPanel = ({
         refundNote: refundForm.refundNote.trim(),
         refundAmount: Number(refundForm.refundAmount),
       });
-      setSuccessMessage("Refund initiated. Checking status with Cashfree…");
+      setSuccessMessage(
+        refundFailed
+          ? `Refund retry initiated. Checking status with ${gatewayLabel}…`
+          : `Refund initiated. Checking status with ${gatewayLabel}…`
+      );
       setShowRefundForm(false);
       await loadRefundDetail();
       await handleCheckStatus();
@@ -168,7 +200,14 @@ const AdminRefundPanel = ({
   return (
     <section className={`admin-card admin-section admin-order-detail__refund${compact ? " admin-refund-panel--compact" : ""}`}>
       <div className="admin-section-header">
-        <h3 className="admin-section__title">Refund lifecycle</h3>
+        <h3 className="admin-section__title">
+          Refund lifecycle
+          {paymentProvider && (
+            <span className="admin-card__hint" style={{ marginLeft: "0.5rem" }}>
+              via {gatewayLabel}
+            </span>
+          )}
+        </h3>
         <div className="admin-action-row">
           {!compact && refundInfo && (
             <button
@@ -192,9 +231,9 @@ const AdminRefundPanel = ({
             <button
               type="button"
               className="admin-btn admin-btn--primary admin-btn--small"
-              onClick={() => setShowRefundForm(true)}
+              onClick={openRefundForm}
             >
-              Initiate refund
+              {refundFailed ? "Initiate refund again" : "Initiate refund"}
             </button>
           )}
         </div>
@@ -237,6 +276,15 @@ const AdminRefundPanel = ({
 
       {showRefundForm && canRefund && (
         <form onSubmit={handleRefund} className="admin-refund-form">
+          {refundFailed && (
+            <p className="admin-card__hint" style={{ marginBottom: "0.75rem" }}>
+              Previous refund attempt failed
+              {refundSnapshot.payuRefundMessage
+                ? `: ${refundSnapshot.payuRefundMessage}`
+                : "."}{" "}
+              Submit again to retry with {gatewayLabel}.
+            </p>
+          )}
           <div className="admin-field">
             <label htmlFor={`refundAmount-${orderId}`}>Refund amount (₹)</label>
             <input
@@ -266,7 +314,11 @@ const AdminRefundPanel = ({
           </div>
           <div className="admin-action-row">
             <button type="submit" className="admin-btn admin-btn--primary" disabled={refunding}>
-              {refunding ? "Initiating…" : "Confirm refund"}
+              {refunding
+                ? "Initiating…"
+                : refundFailed
+                  ? "Retry refund"
+                  : "Confirm refund"}
             </button>
             <button
               type="button"
@@ -300,18 +352,18 @@ const AdminRefundPanel = ({
                 value={getRefundStatusLabel(refundSnapshot.previousStatus)}
               />
             )}
-            {refundSnapshot.cashfreeRefundStatus && (
-              <DetailRow label="Cashfree status">
+            {gatewayRefundStatus && (
+              <DetailRow label={`${gatewayLabel} status`}>
                 <AdminStatusBadge
-                  status={refundSnapshot.cashfreeRefundStatus}
-                  label={getRefundStatusLabel(refundSnapshot.cashfreeRefundStatus)}
+                  status={gatewayRefundStatus}
+                  label={getRefundStatusLabel(gatewayRefundStatus)}
                 />
               </DetailRow>
             )}
-            {refundSnapshot.syncedFromCashfree != null && (
+            {refundSnapshot.syncedFromGateway != null && (
               <DetailRow
-                label="Synced from Cashfree"
-                value={refundSnapshot.syncedFromCashfree ? "Yes" : "No"}
+                label={`Synced from ${gatewayLabel}`}
+                value={refundSnapshot.syncedFromGateway ? "Yes" : "No"}
               />
             )}
             {refundSnapshot.refundAmount != null && (
@@ -320,9 +372,24 @@ const AdminRefundPanel = ({
                 value={formatAdminAmount(refundSnapshot.refundAmount)}
               />
             )}
+            {refundSnapshot.payuRefundMessage && (
+              <DetailRow label="PayU refund message">
+                {refundSnapshot.payuRefundMessage}
+              </DetailRow>
+            )}
+            {refundSnapshot.payuRefundId && (
+              <DetailRow label="PayU refund request ID">
+                <strong className="admin-detail-mono">{refundSnapshot.payuRefundId}</strong>
+              </DetailRow>
+            )}
             {refundSnapshot.cashfreeRefundId && (
               <DetailRow label="Cashfree refund ID">
                 <strong className="admin-detail-mono">{refundSnapshot.cashfreeRefundId}</strong>
+              </DetailRow>
+            )}
+            {refundSnapshot.payuPaymentId && (
+              <DetailRow label="PayU payment ID">
+                <strong className="admin-detail-mono">{refundSnapshot.payuPaymentId}</strong>
               </DetailRow>
             )}
             {refundSnapshot.cashfreePaymentId && (
@@ -340,6 +407,17 @@ const AdminRefundPanel = ({
               <DetailRow label="Last checked" value={formatAdminTime(statusCheckedAt)} />
             )}
           </div>
+          {refundFailed && !showRefundForm && canRefund && (
+            <div className="admin-action-row" style={{ marginTop: "0.75rem" }}>
+              <button
+                type="button"
+                className="admin-btn admin-btn--primary admin-btn--small"
+                onClick={openRefundForm}
+              >
+                Initiate refund again
+              </button>
+            </div>
+          )}
         </div>
       )}
 

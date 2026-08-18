@@ -115,7 +115,7 @@ const PrivacyPage = () => (
 
     <h2>6. Payment processing</h2>
     <p>
-      Online payments are processed by <strong>Cashfree Payments</strong> and partner banks in{" "}
+      Online payments are processed by <strong>PayU</strong> and partner banks in{" "}
       {CURRENCY_CODE} ({CURRENCY_SYMBOL}). Payment card, UPI, and wallet details are handled
       directly by the payment provider under their privacy and security standards.{" "}
       {COMPANY_LEGAL_NAME} receives only the information required to confirm payment and fulfil
@@ -130,7 +130,7 @@ const PrivacyPage = () => (
         <strong>Restaurant partners</strong> — to prepare and hand over your order
       </li>
       <li>
-        <strong>Payment partners</strong> — Cashfree and banking partners for INR transactions
+        <strong>Payment partners</strong> — PayU and banking partners for INR transactions
       </li>
       <li>
         <strong>Cloud hosting providers</strong> — to run our website and backend securely

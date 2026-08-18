@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { playOrderUpdateSound, unlockOrderUpdateSound } from "../utils/orderNotificationSound";
+import {
+  bindOrderUpdateSoundUnlock,
+  playOrderUpdateSound,
+  unlockOrderUpdateSound,
+} from "../utils/orderNotificationSound";
 import {
   getEnableNotificationMessage,
   getNotificationPermission,
@@ -32,18 +36,15 @@ export const useOrderNotifications = () => {
       syncPermission();
     };
 
-    const unlockOnInteraction = () => {
-      unlockOrderUpdateSound();
-    };
+    const unbindSoundUnlock = bindOrderUpdateSoundUnlock();
 
     document.addEventListener("visibilitychange", handleRefresh);
     window.addEventListener("focus", handleRefresh);
-    document.addEventListener("pointerdown", unlockOnInteraction, { once: true });
 
     return () => {
       document.removeEventListener("visibilitychange", handleRefresh);
       window.removeEventListener("focus", handleRefresh);
-      document.removeEventListener("pointerdown", unlockOnInteraction);
+      unbindSoundUnlock();
     };
   }, [syncPermission]);
 
@@ -105,8 +106,8 @@ export const useOrderNotifications = () => {
   }, []);
 
   const handleOrderNotify = useCallback((payload) => {
-    notifyOrderStatusChange(payload);
     playOrderUpdateSound(payload?.status);
+    notifyOrderStatusChange(payload);
     return payload?.message || "";
   }, []);
 

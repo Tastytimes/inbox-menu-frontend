@@ -17,6 +17,7 @@ import RetryPaymentButton from "./restaurant/RetryPaymentButton";
 import OrderNotificationPrompt from "./restaurant/OrderNotificationPrompt";
 import { useFulfillmentPolling } from "../hooks/useFulfillmentPolling";
 import { useOrderNotifications } from "../hooks/useOrderNotifications";
+import { useOrderStatusSoundUnlock } from "../hooks/useOrderStatusSoundUnlock";
 import { getPaymentFailureMessage } from "../utils/paymentFailureMessage";
 import { isTerminalFulfillment } from "../utils/fulfillmentStatus";
 import { routes } from "../utils/routes";
@@ -34,7 +35,7 @@ const STATUS_CONFIG = {
   },
   pending: {
     title: "Payment pending",
-    message: "We are waiting for confirmation from Cashfree. This may take a moment.",
+    message: "We are waiting for confirmation from our payment partner. This may take a moment.",
     className: "payment-status--pending",
     icon: "…",
   },
@@ -94,6 +95,8 @@ const PaymentStatusPage = () => {
     notificationsEnabled,
     showNotificationBanner,
   } = useOrderNotifications();
+
+  useOrderStatusSoundUnlock();
 
   const pendingContext = getPendingOrderContext();
   const slug = slugParam || pendingContext.slug || order?.slug || null;

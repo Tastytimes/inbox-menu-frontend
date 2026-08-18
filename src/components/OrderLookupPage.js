@@ -4,6 +4,7 @@ import { lookupOrdersByPhone } from "../api/orderApi";
 import { unlockOrderUpdateSound } from "../utils/orderNotificationSound";
 import { useFulfillmentPolling } from "../hooks/useFulfillmentPolling";
 import { useOrderNotifications } from "../hooks/useOrderNotifications";
+import { useOrderStatusSoundUnlock } from "../hooks/useOrderStatusSoundUnlock";
 import {
   getLastCustomerPhone,
   getLastRestaurantSlug,
@@ -36,6 +37,8 @@ const OrderLookupPage = () => {
     notificationsEnabled,
     showNotificationBanner,
   } = useOrderNotifications();
+
+  useOrderStatusSoundUnlock();
 
   const lastSlug = getLastRestaurantSlug();
   const backLink = lastSlug ? routes.restaurant(lastSlug) : routes.home;

@@ -47,7 +47,7 @@ const CheckoutCustomerForm = ({
         />
       </label>
       <p className="checkout-customer__hint">
-        Required for Cashfree payment and order updates.
+        Required for online payment and order updates.
       </p>
     </div>
   </section>

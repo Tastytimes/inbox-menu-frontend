@@ -141,6 +141,12 @@ const AdminOrderDetailPanel = ({ orderId, onClose }) => {
             </div>
           )}
 
+          {order.payuPaymentMessage && (
+            <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
+              PayU: {order.payuPaymentMessage}
+            </p>
+          )}
+
           {order.cashfreePaymentMessage && (
             <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
               Cashfree: {order.cashfreePaymentMessage}

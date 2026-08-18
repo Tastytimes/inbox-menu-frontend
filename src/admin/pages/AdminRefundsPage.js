@@ -12,6 +12,8 @@ import {
   hasRefundStarted,
   normalizeRefundCandidates,
   resolveRefundStatus,
+  getPaymentProviderLabel,
+  resolveRefundProvider,
 } from "../utils/refundHelpers";
 import { formatAdminAmount, formatAdminTime, formatOrderLabel } from "../utils/adminFormatters";
 import { adminRoutes } from "../../utils/routes";
@@ -58,7 +60,7 @@ const AdminRefundsPage = () => {
           <h1>Refunds</h1>
           <p>
             Full refund lifecycle: list eligible → view detail → initiate refund → check status
-            with Cashfree.
+            with the same payment gateway used for the order (PayU or Cashfree).
           </p>
         </div>
         <button type="button" className="admin-btn admin-btn--ghost" onClick={loadCandidates}>
@@ -152,6 +154,11 @@ const AdminRefundsPage = () => {
                       <div className="admin-payments-order__meta">
                         <span>{order.clientId ?? item.clientId ?? "—"}</span>
                         <span>{order.slug ?? item.slug ?? "—"}</span>
+                        <span>
+                          {getPaymentProviderLabel(
+                            resolveRefundProvider(item) ?? resolveRefundProvider(order)
+                          )}
+                        </span>
                         <span>{getRefundReasonLabel(item.refundReason || item.reason)}</span>
                       </div>
                     </div>

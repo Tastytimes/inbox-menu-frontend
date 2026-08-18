@@ -1,6 +1,6 @@
 import { BRAND_EMAIL, BRAND_NAME } from "./brand";
 
-/** Registered legal entity — must match Cashfree / GST / PAN records exactly. */
+/** Registered legal entity — must match PayU / GST / PAN records exactly. */
 export const COMPANY_LEGAL_NAME =
   process.env.REACT_APP_COMPANY_LEGAL_NAME || `${BRAND_NAME} Technologies Private Limited`;
 

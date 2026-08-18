@@ -38,7 +38,7 @@ export const PRICING_HIGHLIGHTS = [
   {
     title: "Online payments",
     description:
-      "All payments are processed in INR through Cashfree Payments. We accept UPI, debit/credit cards, and supported wallets.",
+      "All payments are processed in INR through PayU. We accept UPI, debit/credit cards, and supported wallets.",
     example: "Currency: INR only",
   },
   {
