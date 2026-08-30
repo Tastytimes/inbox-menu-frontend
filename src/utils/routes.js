@@ -25,6 +25,7 @@ export const adminRoutes = {
   hotels: `${ADMIN_BASE}/hotels`,
   hotelDetail: (clientId) => `${ADMIN_BASE}/hotels/${clientId}`,
   payments: `${ADMIN_BASE}/payments`,
+  transactionReports: `${ADMIN_BASE}/transaction-reports`,
   support: `${ADMIN_BASE}/support`,
   subscriptionPlans: `${ADMIN_BASE}/subscription-plans`,
   subscriptions: `${ADMIN_BASE}/subscriptions`,

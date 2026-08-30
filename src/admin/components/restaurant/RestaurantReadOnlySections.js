@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import {
+  downloadSubscriptionPaymentInvoice,
+  emailSubscriptionPaymentInvoice,
+} from "../../api/adminApi";
 import AdminStatusBadge from "../AdminStatusBadge";
 import DetailRow from "./DetailRow";
 import { formatAdminAmount, formatAdminTime } from "../../utils/adminFormatters";
@@ -197,7 +201,11 @@ export const BasicInfoSection = ({ basicInfo, verification, editing, form, onBas
               id="gstNumber"
               value={form.basicInfo.gstNumber}
               onChange={(event) => onBasicChange("gstNumber", event.target.value)}
+              placeholder="15-character GSTIN"
             />
+            <p className="admin-card__hint">
+              Used on subscription tax invoices. Leave blank if the restaurant has no GST registration.
+            </p>
           </div>
         </div>
       ) : (
@@ -466,7 +474,62 @@ export const VendorSection = ({ vendor, editing, form, onVendorChange, actions }
   );
 };
 
-export const SubscriptionsSection = ({ subscriptions }) => {
+export const SubscriptionsSection = ({ subscriptions, clientId }) => {
+  const [invoiceAction, setInvoiceAction] = useState(null);
+  const [invoiceError, setInvoiceError] = useState("");
+
+  const handleDownloadInvoice = async (paymentId) => {
+    if (!clientId) {
+      return;
+    }
+
+    setInvoiceAction(`download-${paymentId}`);
+    setInvoiceError("");
+
+    try {
+      const { blob, filename } = await downloadSubscriptionPaymentInvoice(
+        clientId,
+        paymentId
+      );
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setInvoiceError(
+        error.response?.data?.message ||
+          error.message ||
+          "Could not download invoice."
+      );
+    } finally {
+      setInvoiceAction(null);
+    }
+  };
+
+  const handleEmailInvoice = async (paymentId) => {
+    if (!clientId) {
+      return;
+    }
+
+    setInvoiceAction(`email-${paymentId}`);
+    setInvoiceError("");
+
+    try {
+      await emailSubscriptionPaymentInvoice(clientId, paymentId);
+    } catch (error) {
+      setInvoiceError(
+        error.response?.data?.message ||
+          error.message ||
+          "Could not email invoice."
+      );
+    } finally {
+      setInvoiceAction(null);
+    }
+  };
   if (!subscriptions?.length) {
     return (
       <section className="admin-card admin-section">
@@ -507,8 +570,10 @@ export const SubscriptionsSection = ({ subscriptions }) => {
                   <tr>
                     <th>Payment status</th>
                     <th>Amount</th>
+                    <th>Invoice</th>
                     <th>Razorpay payment ID</th>
                     <th>Time</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -519,9 +584,40 @@ export const SubscriptionsSection = ({ subscriptions }) => {
                       </td>
                       <td>{formatPaymentAmount(payment.amount, payment.currency)}</td>
                       <td className="admin-detail-mono">
+                        {displayValue(payment.invoiceNumber)}
+                      </td>
+                      <td className="admin-detail-mono">
                         {displayValue(payment.razorpayPaymentId)}
                       </td>
                       <td>{formatAdminTime(payment.createdAt)}</td>
+                      <td>
+                        {payment.status === "success" ? (
+                          <div className="admin-menu-import__toolbar">
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--secondary"
+                              disabled={Boolean(invoiceAction)}
+                              onClick={() => handleDownloadInvoice(payment.id)}
+                            >
+                              {invoiceAction === `download-${payment.id}`
+                                ? "Downloading…"
+                                : "Download"}
+                            </button>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--secondary"
+                              disabled={Boolean(invoiceAction)}
+                              onClick={() => handleEmailInvoice(payment.id)}
+                            >
+                              {invoiceAction === `email-${payment.id}`
+                                ? "Sending…"
+                                : "Email"}
+                            </button>
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -530,6 +626,7 @@ export const SubscriptionsSection = ({ subscriptions }) => {
           )}
         </div>
       ))}
+      {invoiceError ? <p className="admin-error">{invoiceError}</p> : null}
     </section>
   );
 };

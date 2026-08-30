@@ -47,6 +47,9 @@ const AdminLayout = () => {
           <NavLink to={adminRoutes.payments} className={linkClass}>
             Orders & payments
           </NavLink>
+          <NavLink to={adminRoutes.transactionReports} className={linkClass}>
+            Transaction reports
+          </NavLink>
           <NavLink to={adminRoutes.subscriptions} className={linkClass}>
             Subscriptions
           </NavLink>

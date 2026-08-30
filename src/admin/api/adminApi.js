@@ -17,6 +17,11 @@ adminClient.interceptors.request.use((config) => {
   if (auth?.token) {
     config.headers.Authorization = `Bearer ${auth.token}`;
   }
+
+  if (config.data instanceof FormData && config.headers) {
+    delete config.headers["Content-Type"];
+  }
+
   return config;
 });
 
@@ -76,6 +81,42 @@ export const updatePlatformRestaurantStatus = async (clientId, status) => {
 export const getPlatformPaymentsOverview = async () => {
   const { data } = await adminClient.get("/admin/platform/payments/overview");
   return data;
+};
+
+export const getPlatformTransactionsReport = async (params = {}) => {
+  const { data } = await adminClient.get("/admin/platform/transactions/report", { params });
+  return data;
+};
+
+export const exportPlatformTransactionsReport = async (params = {}) => {
+  const response = await adminClient.get("/admin/platform/transactions/report/export", {
+    params,
+    responseType: "blob",
+  });
+
+  const disposition = response.headers["content-disposition"];
+  const filenameMatch = disposition?.match(/filename="([^"]+)"/);
+  const filename = filenameMatch?.[1] || "platform-transactions.csv";
+
+  return {
+    blob: response.data,
+    filename,
+  };
+};
+
+export const downloadOrderInvoice = async (orderId) => {
+  const response = await adminClient.get(`/admin/platform/orders/${orderId}/invoice`, {
+    responseType: "blob",
+  });
+
+  const disposition = response.headers["content-disposition"];
+  const filenameMatch = disposition?.match(/filename="([^"]+)"/);
+  const filename = filenameMatch?.[1] || `order-invoice-${orderId}.pdf`;
+
+  return {
+    blob: response.data,
+    filename,
+  };
 };
 
 export const lookupSupportOrders = async (customerPhone) => {
@@ -199,6 +240,29 @@ export const listExpiringSubscriptions = async (days = 7) => {
   const { data } = await adminClient.get("/admin/platform/subscriptions/expiring", {
     params: { days },
   });
+  return data;
+};
+
+export const downloadSubscriptionPaymentInvoice = async (clientId, paymentId) => {
+  const response = await adminClient.get(
+    `/admin/platform/restaurants/${clientId}/subscription-payments/${paymentId}/invoice`,
+    { responseType: "blob" }
+  );
+
+  const disposition = response.headers["content-disposition"];
+  const filenameMatch = disposition?.match(/filename="([^"]+)"/);
+  const filename = filenameMatch?.[1] || `subscription-invoice-${paymentId}.pdf`;
+
+  return {
+    blob: response.data,
+    filename,
+  };
+};
+
+export const emailSubscriptionPaymentInvoice = async (clientId, paymentId) => {
+  const { data } = await adminClient.post(
+    `/admin/platform/restaurants/${clientId}/subscription-payments/${paymentId}/invoice/email`
+  );
   return data;
 };
 

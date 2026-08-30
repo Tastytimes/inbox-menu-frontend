@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import {
+  downloadOrderInvoice,
   getRefundCandidate,
   getSupportOrder,
 } from "../api/adminApi";
@@ -42,6 +43,7 @@ const AdminOrderDetailView = ({
   const [refundInfo, setRefundInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loadOrder = useCallback(
@@ -141,6 +143,27 @@ const AdminOrderDetailView = ({
     [displayOrder]
   );
 
+  const isPaid = displayOrder ? resolvePaymentStatus(displayOrder) === "paid" : false;
+
+  const handleDownloadInvoice = async () => {
+    if (!orderId || !isPaid) return;
+    setInvoiceLoading(true);
+    setError("");
+    try {
+      const { blob, filename } = await downloadOrderInvoice(orderId);
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not download invoice.");
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
   if (!orderId) return null;
 
   const wrapperClass =
@@ -176,6 +199,16 @@ const AdminOrderDetailView = ({
           >
             {syncing ? "Syncing…" : "Sync payment"}
           </button>
+          {isPaid && (
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost admin-btn--small"
+              onClick={handleDownloadInvoice}
+              disabled={invoiceLoading || loading}
+            >
+              {invoiceLoading ? "Downloading…" : "Download invoice"}
+            </button>
+          )}
           {layout === "modal" && (
             <Link
               to={adminRoutes.orderDetail(orderId)}

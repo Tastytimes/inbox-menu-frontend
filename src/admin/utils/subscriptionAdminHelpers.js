@@ -19,6 +19,16 @@ export const PRICING_MODEL_OPTIONS = [
   { value: "flat", label: "Flat" },
 ];
 
+export const GST_SPLIT_OPTIONS = [
+  { value: "cgst_sgst", label: "CGST + SGST (same state)" },
+  { value: "igst", label: "IGST (inter-state)" },
+];
+
+export const PLATFORM_FEE_TYPE_OPTIONS = [
+  { value: "flat", label: "Flat amount (₹)" },
+  { value: "percent", label: "Percentage (%)" },
+];
+
 export const planToForm = (plan = {}) => ({
   code: plan.code || plan.planCode || "",
   name: plan.name || plan.planName || "",
@@ -31,6 +41,10 @@ export const planToForm = (plan = {}) => ({
         ? String(plan.priceInPaise / 100)
         : "",
   durationDays: plan.durationDays != null ? String(plan.durationDays) : "",
+  sacCode: plan.sacCode || "",
+  gstRatePercent: plan.gstRatePercent != null ? String(plan.gstRatePercent) : "",
+  platformFee: plan.platformFee != null ? String(plan.platformFee) : "",
+  platformFeeType: plan.platformFeeType || "flat",
   isActive: plan.isActive !== false,
 });
 
@@ -42,6 +56,12 @@ export const formToPlanPayload = (form, { isUpdate = false } = {}) => {
     price: Number(form.price),
     durationDays: Number(form.durationDays),
     isActive: form.isActive,
+    sacCode: form.sacCode.trim() || undefined,
+    gstRatePercent:
+      form.gstRatePercent.trim() === "" ? undefined : Number(form.gstRatePercent),
+    platformFee:
+      form.platformFee.trim() === "" ? undefined : Number(form.platformFee),
+    platformFeeType: form.platformFeeType || "flat",
   };
 
   if (!isUpdate) {

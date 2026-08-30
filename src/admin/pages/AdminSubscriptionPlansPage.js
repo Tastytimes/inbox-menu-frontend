@@ -9,6 +9,7 @@ import AdminStatusBadge from "../components/AdminStatusBadge";
 import { BUSINESS_TYPE_OPTIONS } from "../constants/businessTypes";
 import {
   PRICING_MODEL_OPTIONS,
+  PLATFORM_FEE_TYPE_OPTIONS,
   formToPlanPayload,
   planToForm,
 } from "../utils/subscriptionAdminHelpers";
@@ -82,7 +83,9 @@ const AdminSubscriptionPlansPage = () => {
       resetForm();
       await loadPlans();
     } catch (err) {
-      setError(err.response?.data?.message || "Could not save plan.");
+      setError(
+        err.response?.data?.message || "Could not save plan.",
+      );
     } finally {
       setSaving(false);
     }
@@ -181,6 +184,63 @@ const AdminSubscriptionPlansPage = () => {
               onChange={(event) => setForm({ ...form, durationDays: event.target.value })}
               required
             />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="sacCode">Invoice SAC code</label>
+            <input
+              id="sacCode"
+              value={form.sacCode}
+              onChange={(event) => setForm({ ...form, sacCode: event.target.value })}
+              placeholder="998314"
+            />
+            <p className="admin-card__hint">
+              Service code printed on tax invoices. Leave blank to use backend default.
+            </p>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="gstRatePercent">Invoice GST rate (%)</label>
+            <input
+              id="gstRatePercent"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.gstRatePercent}
+              onChange={(event) => setForm({ ...form, gstRatePercent: event.target.value })}
+              placeholder="18"
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="platformFeeType">Platform fee type</label>
+            <select
+              id="platformFeeType"
+              value={form.platformFeeType}
+              onChange={(event) => setForm({ ...form, platformFeeType: event.target.value })}
+            >
+              {PLATFORM_FEE_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="platformFee">
+              {form.platformFeeType === "percent" ? "Platform fee (%)" : "Platform fee (₹)"}
+            </label>
+            <input
+              id="platformFee"
+              type="number"
+              min="0"
+              step="0.01"
+              value={form.platformFee}
+              onChange={(event) => setForm({ ...form, platformFee: event.target.value })}
+              placeholder={form.platformFeeType === "percent" ? "10" : "0"}
+            />
+            <p className="admin-card__hint">
+              {form.platformFeeType === "percent"
+                ? "Percentage of the plan price, added before GST. Example: 10% on ₹99 = ₹9.90."
+                : "Fixed rupee amount added on top of the plan price before GST."}
+            </p>
           </div>
           <div className="admin-field admin-field--full">
             <span className="admin-field__label">Covered business types</span>

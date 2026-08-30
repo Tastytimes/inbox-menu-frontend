@@ -8,6 +8,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminHotelsPage from "./pages/AdminHotelsPage";
 import AdminRestaurantDetailPage from "./pages/AdminRestaurantDetailPage";
 import AdminPaymentsPage from "./pages/AdminPaymentsPage";
+import AdminTransactionReportsPage from "./pages/AdminTransactionReportsPage";
 import AdminSupportPage from "./pages/AdminSupportPage";
 import AdminSubscriptionPlansPage from "./pages/AdminSubscriptionPlansPage";
 import AdminSubscriptionsPage from "./pages/AdminSubscriptionsPage";
@@ -41,6 +42,7 @@ const AdminApp = () => {
             <Route path="hotels" element={<AdminHotelsPage />} />
             <Route path="hotels/:clientId" element={<AdminRestaurantDetailPage />} />
             <Route path="payments" element={<AdminPaymentsPage />} />
+            <Route path="transaction-reports" element={<AdminTransactionReportsPage />} />
             <Route path="orders/:orderId" element={<AdminOrderDetailPage />} />
             <Route path="subscription-plans" element={<AdminSubscriptionPlansPage />} />
             <Route path="subscriptions" element={<AdminSubscriptionsPage />} />

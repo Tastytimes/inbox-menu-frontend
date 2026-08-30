@@ -5,6 +5,7 @@ import {
   updateRestaurantSupportProfile,
   uploadRestaurantDocuments,
 } from "../api/adminApi";
+import MenuBulkImportPanel from "../components/restaurant/MenuBulkImportPanel";
 import {
   BasicInfoSection,
   BillExtraChargesSection,
@@ -356,9 +357,14 @@ const AdminRestaurantDetailPage = () => {
           }
         />
 
-        <SubscriptionsSection subscriptions={profile.subscriptions} />
+        <SubscriptionsSection subscriptions={profile.subscriptions} clientId={clientId} />
         <QrCodesSection qrCodes={profile.qrCodes} />
         <BillExtraChargesSection billExtraCharges={profile.billExtraCharges} />
+        <MenuBulkImportPanel
+          clientId={Number(clientId)}
+          menu={profile.menu}
+          onImported={loadProfile}
+        />
         <MenuSection menu={profile.menu} />
       </div>
     </>
