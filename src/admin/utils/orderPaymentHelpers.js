@@ -1,10 +1,18 @@
-const PAID_PAYMENT_STATUSES = new Set(["SUCCESS", "PAID", "COMPLETED"]);
-const FAILED_PAYMENT_STATUSES = new Set(["FAILED", "CANCELLED", "USER_DROPPED", "EXPIRED"]);
+const PAID_PAYMENT_STATUSES = new Set(["SUCCESS", "PAID", "COMPLETED", "TXN_SUCCESS"]);
+const FAILED_PAYMENT_STATUSES = new Set([
+  "FAILED",
+  "CANCELLED",
+  "USER_DROPPED",
+  "EXPIRED",
+  "TXN_FAILURE",
+]);
 
 export const getPaymentProviderLabel = (provider) => {
   switch (String(provider || "").toLowerCase()) {
     case "payu":
       return "PayU";
+    case "paytm":
+      return "Paytm";
     case "cashfree":
       return "Cashfree";
     default:
@@ -20,23 +28,35 @@ export const resolvePaymentStatus = (data) => {
   if (data.paymentStatus) return String(data.paymentStatus).toLowerCase();
 
   const payuPayment = String(data.payuPaymentStatus || "").toUpperCase();
+  const paytmPayment = String(data.paytmPaymentStatus || "").toUpperCase();
   const cashfreePayment = String(data.cashfreePaymentStatus || "").toUpperCase();
   const cashfreeOrder = String(data.cashfreeOrderStatus || "").toUpperCase();
 
   if (
     PAID_PAYMENT_STATUSES.has(payuPayment) ||
+    PAID_PAYMENT_STATUSES.has(paytmPayment) ||
     PAID_PAYMENT_STATUSES.has(cashfreePayment) ||
     PAID_PAYMENT_STATUSES.has(cashfreeOrder)
   ) {
     return "paid";
   }
-  if (FAILED_PAYMENT_STATUSES.has(payuPayment) || FAILED_PAYMENT_STATUSES.has(cashfreePayment)) {
+  if (
+    FAILED_PAYMENT_STATUSES.has(payuPayment) ||
+    FAILED_PAYMENT_STATUSES.has(paytmPayment) ||
+    FAILED_PAYMENT_STATUSES.has(cashfreePayment)
+  ) {
     return "failed";
   }
-  if (payuPayment === "PENDING" || cashfreePayment === "PENDING" || cashfreeOrder === "ACTIVE") {
+  if (
+    payuPayment === "PENDING" ||
+    paytmPayment === "PENDING" ||
+    cashfreePayment === "PENDING" ||
+    cashfreeOrder === "ACTIVE"
+  ) {
     return "pending";
   }
   if (payuPayment) return payuPayment.toLowerCase();
+  if (paytmPayment) return paytmPayment.toLowerCase();
   if (cashfreePayment) return cashfreePayment.toLowerCase();
   if (cashfreeOrder) return cashfreeOrder.toLowerCase();
   return null;
@@ -50,6 +70,7 @@ export const getPaymentStatusLabel = (data) => {
   return (
     data?.paymentStatus ??
     data?.payuPaymentStatus ??
+    data?.paytmPaymentStatus ??
     data?.cashfreePaymentStatus ??
     data?.cashfreeOrderStatus ??
     "—"
@@ -63,6 +84,8 @@ export const resolveCashfreePaymentId = (data) =>
   data?.cashfreePaymentId ?? data?.cashfreeRefund?.cf_payment_id ?? null;
 
 export const resolvePayUPaymentId = (data) => data?.payuPaymentId ?? null;
+
+export const resolvePaytmTxnId = (data) => data?.paytmTxnId ?? null;
 
 /** Merge support order + refund candidate/detail into one view model. */
 export const mergeOrderPaymentDetails = (order, refundDetail) => {
@@ -88,14 +111,21 @@ export const mergeOrderPaymentDetails = (order, refundDetail) => {
     payuPaymentId: resolvePayUPaymentId(merged),
     payuPaymentStatus: merged.payuPaymentStatus ?? null,
     payuPaymentMessage: merged.payuPaymentMessage ?? null,
+    paytmTxnId: resolvePaytmTxnId(merged),
+    paytmPaymentStatus: merged.paytmPaymentStatus ?? null,
+    paytmPaymentMessage: merged.paytmPaymentMessage ?? null,
     paymentSessionId: merged.paymentSessionId ?? null,
     cashfreeRefundId: merged.cashfreeRefundId ?? null,
     payuRefundId: merged.payuRefundId ?? null,
     payuRefundStatus: merged.payuRefundStatus ?? null,
+    paytmRefundId: merged.paytmRefundId ?? null,
+    paytmRefundStatus: merged.paytmRefundStatus ?? null,
+    paytmRefundMessage: merged.paytmRefundMessage ?? null,
     refundStatus:
       merged.refundStatus ??
       merged.currentStatus ??
       merged.payuRefundStatus ??
+      merged.paytmRefundStatus ??
       merged.cashfreeRefundStatus ??
       null,
     refundAmount: merged.refundAmount ?? null,
@@ -141,6 +171,25 @@ export const getOrderGatewayDetails = (order) => {
         type: "badge",
         value: order.payuRefundStatus,
         labelText: order.payuRefundStatus,
+      }
+    );
+  }
+
+  if (provider === "paytm" || order.paytmTxnId || order.paytmPaymentStatus) {
+    rows.push(
+      {
+        label: "Paytm payment status",
+        type: "badge",
+        value: order.paytmPaymentStatus,
+        labelText: order.paytmPaymentStatus,
+      },
+      { label: "Paytm transaction ID", type: "mono", value: order.paytmTxnId },
+      { label: "Paytm refund ID", type: "mono", value: order.paytmRefundId },
+      {
+        label: "Paytm refund status",
+        type: "badge",
+        value: order.paytmRefundStatus,
+        labelText: order.paytmRefundStatus,
       }
     );
   }

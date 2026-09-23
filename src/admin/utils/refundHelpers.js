@@ -40,6 +40,8 @@ export const getPaymentProviderLabel = (provider) => {
   switch (String(provider || "").toLowerCase()) {
     case "payu":
       return "PayU";
+    case "paytm":
+      return "Paytm";
     case "cashfree":
       return "Cashfree";
     default:
@@ -59,6 +61,7 @@ export const resolveRefundStatus = (data) => {
   return (
     data.currentStatus ??
     data.payuRefundStatus ??
+    data.paytmRefundStatus ??
     data.cashfreeRefundStatus ??
     data.refundStatus ??
     data.order?.refundStatus ??
@@ -67,7 +70,7 @@ export const resolveRefundStatus = (data) => {
 };
 
 export const resolveGatewayRefundStatus = (data) =>
-  data?.payuRefundStatus ?? data?.cashfreeRefundStatus ?? null;
+  data?.payuRefundStatus ?? data?.paytmRefundStatus ?? data?.cashfreeRefundStatus ?? null;
 
 export const isSyncedFromGateway = (data) =>
   data?.syncedFromGateway ?? data?.syncedFromCashfree ?? null;
@@ -79,6 +82,7 @@ export const normalizeRefundStatusResponse = (data) => {
   const order = data.order;
   const cashfreeRefund = data.cashfreeRefund;
   const payuRefund = data.payuRefund;
+  const paytmRefund = data.paytmRefund;
   const paymentProvider = resolveRefundProvider(data);
 
   return {
@@ -88,6 +92,8 @@ export const normalizeRefundStatusResponse = (data) => {
     cashfreeRefundStatus: data.cashfreeRefundStatus ?? null,
     payuRefundStatus: data.payuRefundStatus ?? order?.payuRefundStatus ?? null,
     payuRefundMessage: data.payuRefundMessage ?? order?.payuRefundMessage ?? null,
+    paytmRefundStatus: data.paytmRefundStatus ?? order?.paytmRefundStatus ?? null,
+    paytmRefundMessage: data.paytmRefundMessage ?? order?.paytmRefundMessage ?? null,
     currentStatus: data.currentStatus ?? null,
     message: data.message ?? null,
     syncedFromGateway: isSyncedFromGateway(data),
@@ -96,6 +102,7 @@ export const normalizeRefundStatusResponse = (data) => {
       data.refundAmount ??
       order?.refundAmount ??
       payuRefund?.amt ??
+      paytmRefund?.refundAmount ??
       cashfreeRefund?.refund_amount ??
       cashfreeRefund?.refundAmount ??
       null,
@@ -114,15 +121,18 @@ export const normalizeRefundStatusResponse = (data) => {
       null,
     payuRefundId:
       data.payuRefundId ?? order?.payuRefundId ?? payuRefund?.token ?? null,
+    paytmRefundId: data.paytmRefundId ?? order?.paytmRefundId ?? paytmRefund?.refId ?? null,
     cashfreePaymentId:
       data.cashfreePaymentId ??
       order?.cashfreePaymentId ??
       cashfreeRefund?.cf_payment_id ??
       null,
     payuPaymentId: data.payuPaymentId ?? order?.payuPaymentId ?? null,
+    paytmTxnId: data.paytmTxnId ?? order?.paytmTxnId ?? null,
     order,
     cashfreeRefund,
     payuRefund,
+    paytmRefund,
   };
 };
 
@@ -132,6 +142,7 @@ export const normalizeRefundRecord = (source) => {
     source.currentStatus != null ||
     source.cashfreeRefundStatus != null ||
     source.payuRefundStatus != null ||
+    source.paytmRefundStatus != null ||
     source.syncedFromGateway != null ||
     source.syncedFromCashfree != null ||
     source.previousStatus != null
@@ -150,8 +161,12 @@ export const normalizeRefundRecord = (source) => {
     payuRefundId: source.payuRefundId ?? order?.payuRefundId ?? null,
     payuRefundStatus: source.payuRefundStatus ?? order?.payuRefundStatus ?? null,
     payuRefundMessage: source.payuRefundMessage ?? order?.payuRefundMessage ?? null,
+    paytmRefundId: source.paytmRefundId ?? order?.paytmRefundId ?? null,
+    paytmRefundStatus: source.paytmRefundStatus ?? order?.paytmRefundStatus ?? null,
+    paytmRefundMessage: source.paytmRefundMessage ?? order?.paytmRefundMessage ?? null,
     cashfreePaymentId: source.cashfreePaymentId ?? order?.cashfreePaymentId ?? null,
     payuPaymentId: source.payuPaymentId ?? order?.payuPaymentId ?? null,
+    paytmTxnId: source.paytmTxnId ?? order?.paytmTxnId ?? null,
     refundReason: source.refundReason ?? source.reason ?? null,
   };
 };
@@ -162,8 +177,10 @@ export const hasRefundStarted = (data) =>
       data?.previousStatus ||
       data?.cashfreeRefundId ||
       data?.payuRefundId ||
+      data?.paytmRefundId ||
       data?.cashfreeRefund ||
       data?.payuRefund ||
+      data?.paytmRefund ||
       data?.refundAmount != null ||
       data?.refundedAt
   );

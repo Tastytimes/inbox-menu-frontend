@@ -11,10 +11,12 @@ export const routes = {
   pricing: "/pricing",
   trackOrders: `${QR_BASE}/track-orders`,
   trackOrder: (token) => `/track/${token}`,
+  reserve: (token) => `/reserve/${token}`,
   paymentStatus: `${QR_BASE}/payment/status`,
   restaurant: (slug) => `${QR_BASE}/${slug}`,
   checkoutContact: (slug) => `${QR_BASE}/${slug}/checkout/contact`,
   checkout: (slug) => `${QR_BASE}/${slug}/checkout`,
+  tableCart: (slug) => `${QR_BASE}/${slug}/cart`,
   paymentStatusForSlug: (slug) => `${QR_BASE}/${slug}/payment/status`,
 };
 
@@ -30,6 +32,7 @@ export const adminRoutes = {
   subscriptionPlans: `${ADMIN_BASE}/subscription-plans`,
   subscriptions: `${ADMIN_BASE}/subscriptions`,
   refunds: `${ADMIN_BASE}/refunds`,
+  appCopy: `${ADMIN_BASE}/app-copy`,
   orderDetail: (orderId) => `${ADMIN_BASE}/orders/${orderId}`,
   users: `${ADMIN_BASE}/users`,
 };

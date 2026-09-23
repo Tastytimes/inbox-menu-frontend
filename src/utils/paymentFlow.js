@@ -1,5 +1,6 @@
 import { openCashfreeCheckout } from "./cashfree";
 import { submitPayUCheckout } from "./payu";
+import { openPaytmCheckout } from "./paytm";
 import { setLastRestaurantSlug } from "./customerStorage";
 import { setPendingOrderId } from "./orderStorage";
 
@@ -12,6 +13,8 @@ export const getPaymentProviderLabel = (provider) => {
   switch (String(provider || "").toLowerCase()) {
     case "payu":
       return "PayU";
+    case "paytm":
+      return "Paytm";
     case "cashfree":
       return "Cashfree";
     default:
@@ -20,7 +23,8 @@ export const getPaymentProviderLabel = (provider) => {
 };
 
 /**
- * Open checkout for PayU or Cashfree from checkout / retry-payment response.
+ * Open checkout for Paytm, PayU, or Cashfree from checkout / retry-payment response.
+ * Prefers the provider returned by the server so switching PAYMENT_PROVIDER stays in sync.
  * Returns { redirected: true } if checkout opened, or { paid: true, order } if already paid.
  */
 export const launchPayment = async (response) => {
@@ -35,8 +39,23 @@ export const launchPayment = async (response) => {
   setPendingOrderId(slug, response.orderId);
 
   const provider = String(response.paymentProvider || "").toLowerCase();
+  const hasPaytmCheckout = Boolean(
+    response.paytmCheckout?.txnToken &&
+      response.paytmCheckout?.orderId &&
+      response.paytmCheckout?.mid
+  );
   const hasPayUCheckout =
     response.payuCheckout?.actionUrl && response.payuCheckout?.fields;
+
+  if (hasPaytmCheckout || provider === "paytm") {
+    if (!hasPaytmCheckout) {
+      throw new Error(
+        "Paytm checkout was not returned by the server. Check PAYMENT_PROVIDER=paytm and Paytm credentials on the backend."
+      );
+    }
+    await openPaytmCheckout(response.paytmCheckout);
+    return { redirected: true };
+  }
 
   if (hasPayUCheckout || provider === "payu") {
     if (!hasPayUCheckout) {

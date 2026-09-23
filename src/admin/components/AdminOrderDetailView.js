@@ -332,6 +332,11 @@ const AdminOrderDetailView = ({
                 PayU: {displayOrder.payuPaymentMessage}
               </p>
             )}
+            {displayOrder.paytmPaymentMessage && (
+              <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
+                Paytm: {displayOrder.paytmPaymentMessage}
+              </p>
+            )}
             {displayOrder.cashfreePaymentMessage && (
               <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
                 Cashfree: {displayOrder.cashfreePaymentMessage}

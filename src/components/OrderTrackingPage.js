@@ -224,15 +224,22 @@ const OrderTrackingPage = () => {
 
           <OrderTrackingProgress status={fulfillmentStatus} />
 
-          {(tracking.tableNo || isMixedOrder) && (
+          {(tracking.tableNo || isMixedOrder || tracking.courseNumber || tracking.serviceMode) && (
             <div className="order-track-meta">
               {tracking.tableNo ? (
                 <span className="order-track-meta__chip">
                   Table <strong>{tracking.tableNo}</strong>
                 </span>
               ) : null}
+              {tracking.courseNumber ? (
+                <span className="order-track-meta__chip">
+                  {String(tracking.courseNumber).replace(/_/g, " ")}
+                </span>
+              ) : null}
               {isMixedOrder ? (
                 <span className="order-track-meta__chip">🍽️ + 🥡 Mixed order</span>
+              ) : tracking.serviceMode === "fine_dine_table" ? (
+                <span className="order-track-meta__chip">Fine dine</span>
               ) : tracking.isParcel ? (
                 <span className="order-track-meta__chip">🥡 Takeaway</span>
               ) : (

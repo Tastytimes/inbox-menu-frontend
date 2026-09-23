@@ -76,6 +76,9 @@ const FoodItemCard = ({
   onRemoveParcel,
   updatingDineIn,
   updatingParcel,
+  hideParcel = false,
+  dineInLabel = "Dine-in",
+  dineInSublabel = "Served at your table",
 }) => {
   const isVeg = item.foodType?.toLowerCase() === "veg";
   const foodTypeLabel = isVeg ? "Veg" : "Non-veg";
@@ -118,29 +121,31 @@ const FoodItemCard = ({
         )}
 
         <div className="food-card__order-types">
-          {inCart && (
+          {inCart && !hideParcel && (
             <p className="food-card__order-types-heading">Choose quantity by type</p>
           )}
 
           <OrderTypeStepper
             type="dinein"
-            label="Dine-in"
-            sublabel="Served at your table"
+            label={dineInLabel}
+            sublabel={dineInSublabel}
             quantity={dineInQty}
             onIncrement={() => onAddDineIn(item)}
             onDecrement={() => onRemoveDineIn(item)}
             updating={updatingDineIn}
           />
 
-          <OrderTypeStepper
-            type="parcel"
-            label="Takeaway"
-            sublabel={parcelSublabel || "Pack to go"}
-            quantity={parcelQty}
-            onIncrement={() => onAddParcel(item)}
-            onDecrement={() => onRemoveParcel(item)}
-            updating={updatingParcel}
-          />
+          {!hideParcel ? (
+            <OrderTypeStepper
+              type="parcel"
+              label="Takeaway"
+              sublabel={parcelSublabel || "Pack to go"}
+              quantity={parcelQty}
+              onIncrement={() => onAddParcel(item)}
+              onDecrement={() => onRemoveParcel(item)}
+              updating={updatingParcel}
+            />
+          ) : null}
         </div>
       </div>
     </article>

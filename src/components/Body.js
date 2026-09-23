@@ -7,6 +7,8 @@ import OrderLookupPage from "./OrderLookupPage";
 import OrderTrackingPage from "./OrderTrackingPage";
 import PaymentStatusPage from "./PaymentStatusPage";
 import RestaurantPage from "./RestaurantPage";
+import FineDineCartPage from "./FineDineCartPage";
+import ReservationPreOrderPage from "./ReservationPreOrderPage";
 import InvalidUrl from "./InvalidUrl";
 import AboutPage from "./legal/AboutPage";
 import ContactPage from "./legal/ContactPage";
@@ -22,8 +24,31 @@ const AdminLoadingFallback = () => (
   <div className="admin-loading">Loading admin…</div>
 );
 
+const QrNestedSlugRedirect = () => {
+  const location = useLocation();
+  const parts = location.pathname.split("/").filter(Boolean);
+  const slug = parts[parts.length - 1];
+
+  if (!slug || slug === "qr") {
+    return <InvalidUrl />;
+  }
+
+  return (
+    <Navigate
+      to={`${routes.restaurant(slug)}${location.search}${location.hash}`}
+      replace
+    />
+  );
+};
+
 const QrLegacyRedirect = () => {
   const location = useLocation();
+
+  // Already under /qr — do not prepend /qr again (that grows into /qr/qr/qr/...).
+  if (location.pathname === "/qr" || location.pathname.startsWith("/qr/")) {
+    return <InvalidUrl />;
+  }
+
   return (
     <Navigate
       to={`/qr${location.pathname}${location.search}${location.hash}`}
@@ -55,7 +80,10 @@ const Body = () => {
       <Route path="/qr/:slug/payment/status" element={<PaymentStatusPage />} />
       <Route path="/qr/:slug/checkout/contact" element={<ContactDetailsPage />} />
       <Route path="/qr/:slug/checkout" element={<CheckoutPage />} />
+      <Route path="/qr/:slug/cart" element={<FineDineCartPage />} />
       <Route path="/qr/:slug" element={<RestaurantPage />} />
+      <Route path="/qr/:slug/*" element={<QrNestedSlugRedirect />} />
+      <Route path="/reserve/:token" element={<ReservationPreOrderPage />} />
       <Route path="/track/:token" element={<OrderTrackingPage />} />
       <Route path="/track-orders" element={<Navigate to={routes.trackOrders} replace />} />
       <Route path="/payment/status" element={<Navigate to={routes.paymentStatus} replace />} />
