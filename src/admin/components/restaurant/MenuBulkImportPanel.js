@@ -20,7 +20,7 @@ const createRowId = () =>
   `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
-  const counters = menu?.counters ?? [];
+  const counters = useMemo(() => menu?.counters ?? [], [menu?.counters]);
   const [step, setStep] = useState("defaults");
   const [businessType, setBusinessType] = useState(["fine_dining"]);
   const [defaultFoodType, setDefaultFoodType] = useState("veg");
