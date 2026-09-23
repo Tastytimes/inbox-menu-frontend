@@ -59,6 +59,9 @@ const AdminLayout = () => {
           <NavLink to={adminRoutes.refunds} className={linkClass}>
             Refunds
           </NavLink>
+          <NavLink to={adminRoutes.appCopy} className={linkClass}>
+            App copy
+          </NavLink>
           <NavLink to={adminRoutes.support} className={linkClass}>
             Customer care
             {unreadCount > 0 ? (

@@ -48,7 +48,11 @@ export const getPaymentFailureMessage = (order) => {
   const errorReason = pickText(error?.error_reason);
   if (errorReason) return formatErrorReason(errorReason);
 
-  const paymentMessage = pickText(order.payuPaymentMessage, order.cashfreePaymentMessage);
+  const paymentMessage = pickText(
+    order.payuPaymentMessage,
+    order.paytmPaymentMessage,
+    order.cashfreePaymentMessage
+  );
   if (paymentMessage && paymentMessage.toLowerCase() !== "simulated response message") {
     return paymentMessage;
   }

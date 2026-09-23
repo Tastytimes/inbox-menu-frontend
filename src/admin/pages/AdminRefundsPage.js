@@ -60,7 +60,7 @@ const AdminRefundsPage = () => {
           <h1>Refunds</h1>
           <p>
             Full refund lifecycle: list eligible → view detail → initiate refund → check status
-            with the same payment gateway used for the order (PayU or Cashfree).
+            with the same payment gateway used for the order (Paytm, PayU, or Cashfree).
           </p>
         </div>
         <button type="button" className="admin-btn admin-btn--ghost" onClick={loadCandidates}>

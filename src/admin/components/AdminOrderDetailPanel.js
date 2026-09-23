@@ -147,6 +147,12 @@ const AdminOrderDetailPanel = ({ orderId, onClose }) => {
             </p>
           )}
 
+          {order.paytmPaymentMessage && (
+            <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
+              Paytm: {order.paytmPaymentMessage}
+            </p>
+          )}
+
           {order.cashfreePaymentMessage && (
             <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
               Cashfree: {order.cashfreePaymentMessage}

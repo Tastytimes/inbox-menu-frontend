@@ -1,7 +1,7 @@
 import React from "react";
 import { BRAND_LOGO, BRAND_NAME } from "../../constants/brand";
 
-const RestaurantHeader = ({ restaurant }) => (
+const RestaurantHeader = ({ restaurant, tableNo }) => (
   <header className="restaurant-header sticky-top">
     <div className="restaurant-header__inner">
       <div className="restaurant-header__logo restaurant-header__logo--restaurant">
@@ -16,11 +16,16 @@ const RestaurantHeader = ({ restaurant }) => (
 
       <div className="restaurant-header__center">
         <h1 className="restaurant-header__title">{restaurant.name}</h1>
-        {(restaurant.city || restaurant.address) && (
+        {(restaurant.city || restaurant.address || tableNo) && (
           <p className="restaurant-header__subtitle">
-            {[restaurant.address, restaurant.city, restaurant.state]
+            {[
+              tableNo ? `Table ${tableNo}` : null,
+              restaurant.address,
+              restaurant.city,
+              restaurant.state,
+            ]
               .filter(Boolean)
-              .join(", ")}
+              .join(" · ")}
           </p>
         )}
       </div>

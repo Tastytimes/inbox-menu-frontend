@@ -80,6 +80,7 @@ const AdminRefundPanel = ({
   const displayStatus =
     refundSnapshot.currentStatus ??
     refundSnapshot.payuRefundStatus ??
+    refundSnapshot.paytmRefundStatus ??
     refundSnapshot.cashfreeRefundStatus ??
     refundSnapshot.refundStatus;
 
@@ -281,7 +282,9 @@ const AdminRefundPanel = ({
               Previous refund attempt failed
               {refundSnapshot.payuRefundMessage
                 ? `: ${refundSnapshot.payuRefundMessage}`
-                : "."}{" "}
+                : refundSnapshot.paytmRefundMessage
+                  ? `: ${refundSnapshot.paytmRefundMessage}`
+                  : "."}{" "}
               Submit again to retry with {gatewayLabel}.
             </p>
           )}
@@ -377,9 +380,19 @@ const AdminRefundPanel = ({
                 {refundSnapshot.payuRefundMessage}
               </DetailRow>
             )}
+            {refundSnapshot.paytmRefundMessage && (
+              <DetailRow label="Paytm refund message">
+                {refundSnapshot.paytmRefundMessage}
+              </DetailRow>
+            )}
             {refundSnapshot.payuRefundId && (
               <DetailRow label="PayU refund request ID">
                 <strong className="admin-detail-mono">{refundSnapshot.payuRefundId}</strong>
+              </DetailRow>
+            )}
+            {refundSnapshot.paytmRefundId && (
+              <DetailRow label="Paytm refund reference">
+                <strong className="admin-detail-mono">{refundSnapshot.paytmRefundId}</strong>
               </DetailRow>
             )}
             {refundSnapshot.cashfreeRefundId && (
@@ -390,6 +403,11 @@ const AdminRefundPanel = ({
             {refundSnapshot.payuPaymentId && (
               <DetailRow label="PayU payment ID">
                 <strong className="admin-detail-mono">{refundSnapshot.payuPaymentId}</strong>
+              </DetailRow>
+            )}
+            {refundSnapshot.paytmTxnId && (
+              <DetailRow label="Paytm transaction ID">
+                <strong className="admin-detail-mono">{refundSnapshot.paytmTxnId}</strong>
               </DetailRow>
             )}
             {refundSnapshot.cashfreePaymentId && (

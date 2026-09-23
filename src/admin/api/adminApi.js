@@ -388,3 +388,13 @@ export const reopenSupportConversation = async (conversationId) => {
   );
   return data;
 };
+
+export const getAdminAppCopy = async (locale = "en") => {
+  const { data } = await adminClient.get("/admin/app-copy", { params: { locale } });
+  return data;
+};
+
+export const upsertAdminAppCopy = async ({ locale = "en", entries, replace = false } = {}) => {
+  const { data } = await adminClient.put("/admin/app-copy", { locale, entries, replace });
+  return data;
+};

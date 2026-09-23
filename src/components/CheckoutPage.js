@@ -17,7 +17,8 @@ import CustomerSummary from "./restaurant/CustomerSummary";
 import OrderMixSummary from "./restaurant/OrderMixSummary";
 import "./restaurant/RestaurantMenu.css";
 
-const PAYMENT_PROVIDER = process.env.REACT_APP_PAYMENT_PROVIDER || "payu";
+// Fallback label from env. Checkout uses the provider returned by the backend (paytm | payu | cashfree).
+const PAYMENT_PROVIDER = process.env.REACT_APP_PAYMENT_PROVIDER || "paytm";
 const PAYMENT_PROVIDER_LABEL = getPaymentProviderLabel(PAYMENT_PROVIDER);
 
 const CheckoutPage = () => {
@@ -64,9 +65,19 @@ const CheckoutPage = () => {
     setCustomer(getStoredCustomer(slug));
 
     loadCart()
-      .catch(() => setError("Could not load cart"))
+      .catch((err) => {
+        const expired =
+          err?.response?.status === 404 ||
+          /cart not found|expired/i.test(String(err?.response?.data?.message || ""));
+        if (expired) {
+          clearStaleCart();
+          setError("Your cart expired. Go back to the menu and add items again.");
+          return;
+        }
+        setError("Could not load cart");
+      })
       .finally(() => setLoading(false));
-  }, [slug, loadCart, navigate]);
+  }, [slug, loadCart, navigate, clearStaleCart]);
 
   const handlePay = async () => {
     if (!customer) {

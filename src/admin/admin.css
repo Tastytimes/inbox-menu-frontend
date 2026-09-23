@@ -2152,6 +2152,22 @@
   gap: 0.85rem;
 }
 
+.admin-menu-import__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-menu-import__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--admin-border, #d8dee8);
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+}
+
 .admin-menu-import__warnings {
   margin: 0;
   padding-left: 1.1rem;
@@ -2197,4 +2213,70 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+}
+
+.admin-copy__toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.admin-copy__search {
+  flex: 1;
+  min-width: 240px;
+  margin-bottom: 0;
+}
+
+.admin-copy__add {
+  display: grid;
+  grid-template-columns: minmax(12rem, 18rem) 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.admin-copy__add .admin-field {
+  margin-bottom: 0;
+}
+
+.admin-copy__key {
+  font-size: 0.8rem;
+}
+
+.admin-copy__default {
+  color: var(--admin-muted);
+  max-width: 22rem;
+  white-space: pre-wrap;
+}
+
+.admin-copy__input {
+  width: 100%;
+  min-width: 16rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+  resize: vertical;
+}
+
+.admin-copy__input:focus {
+  outline: none;
+  border-color: var(--admin-brand);
+  box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.15);
+}
+
+.admin-copy__meta {
+  font-size: 1rem;
+}
+
+.admin-header .admin-btn--primary {
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .admin-copy__add {
+    grid-template-columns: 1fr;
+  }
 }

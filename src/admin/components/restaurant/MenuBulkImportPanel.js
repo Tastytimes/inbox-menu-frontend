@@ -22,7 +22,7 @@ const createRowId = () =>
 const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
   const counters = menu?.counters ?? [];
   const [step, setStep] = useState("defaults");
-  const [businessType, setBusinessType] = useState("fine_dining");
+  const [businessType, setBusinessType] = useState(["fine_dining"]);
   const [defaultFoodType, setDefaultFoodType] = useState("veg");
   const [fallbackCategory, setFallbackCategory] = useState("General");
   const [createMissingCategories, setCreateMissingCategories] = useState(true);
@@ -37,12 +37,16 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
+  const usesFineDiningKitchen = businessType.includes("fine_dining");
+
   const counterOptions = useMemo(
     () =>
-      counters.map((counter) => ({
-        label: counter.name,
-        value: String(counter.id),
-      })),
+      counters
+        .filter((counter) => !counter.isFineDiningCounter)
+        .map((counter) => ({
+          label: counter.name,
+          value: String(counter.id),
+        })),
     [counters]
   );
 
@@ -71,7 +75,7 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
       return;
     }
 
-    if (!counterOptions.length) {
+    if (!usesFineDiningKitchen && !counterOptions.length) {
       setError("This restaurant needs at least one counter before importing.");
       return;
     }
@@ -147,7 +151,9 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
       return;
     }
 
-    const missingCounter = selectedRows.find((row) => !row.counterId);
+    const missingCounter = usesFineDiningKitchen
+      ? null
+      : selectedRows.find((row) => !row.counterId);
     if (missingCounter) {
       setError("Select a counter for every selected item before approving.");
       return;
@@ -172,7 +178,9 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
         createMissingCategories,
         defaults: {
           businessType,
-          counterId: Number(selectedRows[0].counterId),
+          ...(usesFineDiningKitchen
+            ? {}
+            : { counterId: Number(selectedRows[0].counterId) }),
           foodType: defaultFoodType,
           fallbackCategory: fallbackCategory.trim() || "General",
         },
@@ -181,7 +189,7 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
           price: Number(row.price),
           category: row.category.trim() || fallbackCategory.trim() || "General",
           foodType: row.foodType,
-          counterId: Number(row.counterId),
+          ...(usesFineDiningKitchen ? {} : { counterId: Number(row.counterId) }),
           parcelCharge: Number(row.parcelCharge) || 0,
         })),
       });
@@ -205,32 +213,53 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
       <div className="admin-card__header">
         <h2 className="admin-section__title">Import menu from photo</h2>
         <p className="admin-card__hint">
-          Upload one or more menu photos, review extracted items, set counter and
-          parcel charge for each item, then approve to insert into the menu.
-          Nothing is saved until you approve.
+          Upload one or more menu photos, review extracted items, then approve to
+          insert into the menu. Fine dining items all print on one kitchen counter
+          created automatically. Nothing is saved until you approve.
         </p>
       </div>
 
       {step === "defaults" ? (
         <div className="admin-menu-import__form">
-          <label className="admin-field">
-            <span>Business type</span>
-            <select
-              value={businessType}
-              onChange={(event) => setBusinessType(event.target.value)}
-            >
-              {BUSINESS_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="admin-field">
+            <legend>Business types</legend>
+            <div className="admin-menu-import__chips">
+              {BUSINESS_TYPE_OPTIONS.map((option) => {
+                const selected = businessType.includes(option.value);
+                return (
+                  <label key={option.value} className="admin-menu-import__chip">
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => {
+                        if (selected) {
+                          if (businessType.length === 1) {
+                            return;
+                          }
+                          setBusinessType(businessType.filter((type) => type !== option.value));
+                          return;
+                        }
+                        setBusinessType([...businessType, option.value]);
+                      }}
+                    />
+                    {option.label}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
 
-          {!counterOptions.length ? (
+          {!usesFineDiningKitchen && !counterOptions.length ? (
             <p className="admin-card__hint">
               This restaurant has no counters yet. Create one in the partner app
               before importing menu items.
+            </p>
+          ) : null}
+
+          {usesFineDiningKitchen ? (
+            <p className="admin-card__hint">
+              Fine dining items all print on Fine Dining Kitchen, created
+              automatically. You do not need to create or pick a counter.
             </p>
           ) : null}
 
@@ -271,7 +300,7 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
           <button
             type="button"
             className="admin-btn admin-btn--primary"
-            disabled={!counterOptions.length}
+            disabled={!usesFineDiningKitchen && !counterOptions.length}
             onClick={() => setStep("photo")}
           >
             Continue to photo upload
@@ -347,26 +376,30 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
 
           <div className="admin-menu-import__toolbar">
             <p>
-              Review {selectedCount} of {rows.length} items. Set counter and
-              parcel charge before approving.
+              Review {selectedCount} of {rows.length} items.
+              {usesFineDiningKitchen
+                ? " Kitchen routing is automatic. Set parcel charge before approving."
+                : " Set counter and parcel charge before approving."}
             </p>
           </div>
 
           <div className="admin-menu-import__bulk-apply">
-            <label className="admin-field">
-              <span>Counter for selected</span>
-              <select
-                value={bulkCounterId}
-                onChange={(event) => setBulkCounterId(event.target.value)}
-              >
-                <option value="">Select counter</option>
-                {counterOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {usesFineDiningKitchen ? null : (
+              <label className="admin-field">
+                <span>Counter for selected</span>
+                <select
+                  value={bulkCounterId}
+                  onChange={(event) => setBulkCounterId(event.target.value)}
+                >
+                  <option value="">Select counter</option>
+                  {counterOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className="admin-field">
               <span>Parcel charge for selected</span>
               <input
@@ -376,13 +409,15 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
               />
             </label>
             <div className="admin-menu-import__toolbar">
-              <button
-                type="button"
-                className="admin-btn admin-btn--secondary"
-                onClick={applyBulkCounterToSelected}
-              >
-                Apply counter
-              </button>
+              {usesFineDiningKitchen ? null : (
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--secondary"
+                  onClick={applyBulkCounterToSelected}
+                >
+                  Apply counter
+                </button>
+              )}
               <button
                 type="button"
                 className="admin-btn admin-btn--secondary"
@@ -461,22 +496,24 @@ const MenuBulkImportPanel = ({ clientId, menu, onImported }) => {
                     ))}
                   </select>
                 </label>
-                <label className="admin-field">
-                  <span>Counter</span>
-                  <select
-                    value={row.counterId}
-                    onChange={(event) =>
-                      updateRow(row.id, { counterId: event.target.value })
-                    }
-                  >
-                    <option value="">Select counter</option>
-                    {counterOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {usesFineDiningKitchen ? null : (
+                  <label className="admin-field">
+                    <span>Counter</span>
+                    <select
+                      value={row.counterId}
+                      onChange={(event) =>
+                        updateRow(row.id, { counterId: event.target.value })
+                      }
+                    >
+                      <option value="">Select counter</option>
+                      {counterOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <label className="admin-field">
                   <span>Parcel charge</span>
                   <input

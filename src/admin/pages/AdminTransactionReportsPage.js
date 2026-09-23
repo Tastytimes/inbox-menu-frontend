@@ -8,11 +8,17 @@ import {
 } from "../api/adminApi";
 import { formatAdminAmount, formatAdminTime } from "../utils/adminFormatters";
 import { adminRoutes } from "../../utils/routes";
+import { BUSINESS_TYPE_OPTIONS } from "../constants/businessTypes";
 
 const TYPE_FILTERS = [
   { value: "all", label: "All transactions" },
   { value: "order", label: "Orders only" },
   { value: "subscription", label: "Subscriptions only" },
+];
+
+const BUSINESS_TYPE_FILTERS = [
+  { value: "", label: "All business types" },
+  ...BUSINESS_TYPE_OPTIONS,
 ];
 
 const getCurrentMonthRange = () => {
@@ -45,6 +51,7 @@ const AdminTransactionReportsPage = () => {
   const [startDate, setStartDate] = useState(defaultRange.startDate);
   const [endDate, setEndDate] = useState(defaultRange.endDate);
   const [type, setType] = useState("all");
+  const [businessType, setBusinessType] = useState("");
   const [clientId, setClientId] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -67,6 +74,7 @@ const AdminTransactionReportsPage = () => {
       };
       if (clientId.trim()) params.clientId = Number(clientId.trim());
       if (search.trim()) params.search = search.trim();
+      if (businessType) params.businessType = businessType;
 
       const data = await getPlatformTransactionsReport(params);
       setReport(data);
@@ -75,7 +83,7 @@ const AdminTransactionReportsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [clientId, endDate, page, search, startDate, type]);
+  }, [businessType, clientId, endDate, page, search, startDate, type]);
 
   useEffect(() => {
     loadReport();
@@ -88,6 +96,7 @@ const AdminTransactionReportsPage = () => {
       const params = { startDate, endDate, type };
       if (clientId.trim()) params.clientId = Number(clientId.trim());
       if (search.trim()) params.search = search.trim();
+      if (businessType) params.businessType = businessType;
       const { blob, filename } = await exportPlatformTransactionsReport(params);
       downloadBlob(blob, filename);
     } catch (err) {
@@ -222,6 +231,23 @@ const AdminTransactionReportsPage = () => {
             </button>
           ))}
         </div>
+        <div className="admin-payments-chips" style={{ marginTop: "0.75rem" }}>
+          {BUSINESS_TYPE_FILTERS.map((filter) => (
+            <button
+              key={filter.value || "all-types"}
+              type="button"
+              className={`admin-payments-chip${
+                businessType === filter.value ? " admin-payments-chip--active" : ""
+              }`}
+              onClick={() => {
+                setPage(1);
+                setBusinessType(filter.value);
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
 
         {report?.period?.label && (
           <p className="admin-card__hint" style={{ marginTop: "0.75rem" }}>
@@ -316,6 +342,13 @@ const AdminTransactionReportsPage = () => {
                               row.restaurantName
                             )}
                             {row.planName && <span className="admin-card__hint">{row.planName}</span>}
+                            {(row.businessType || row.tableNo) && (
+                              <span className="admin-card__hint">
+                                {[row.businessType, row.tableNo ? `Table ${row.tableNo}` : null]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td>{formatAdminAmount(row.customerPaid)}</td>

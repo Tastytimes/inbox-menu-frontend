@@ -37,7 +37,7 @@ const RefundPolicyPage = () => (
     <h2>3. Refund process</h2>
     <p>
       Approved refunds are initiated by {COMPANY_LEGAL_NAME} or the restaurant partner through the
-      original payment method (via PayU for online orders). Refunds typically reflect within 5–10
+      original payment method (via the payment gateway used at checkout). Refunds typically reflect within 5–10
       business days depending on your bank or UPI provider.
     </p>
 
