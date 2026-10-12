@@ -8,6 +8,7 @@ import OrderTrackingPage from "./OrderTrackingPage";
 import PaymentStatusPage from "./PaymentStatusPage";
 import RestaurantPage from "./RestaurantPage";
 import FineDineCartPage from "./FineDineCartPage";
+import FineDineGroupJoinPage from "./FineDineGroupJoinPage";
 import ReservationPreOrderPage from "./ReservationPreOrderPage";
 import InvalidUrl from "./InvalidUrl";
 import AboutPage from "./legal/AboutPage";
@@ -81,6 +82,7 @@ const Body = () => {
       <Route path="/qr/:slug/checkout/contact" element={<ContactDetailsPage />} />
       <Route path="/qr/:slug/checkout" element={<CheckoutPage />} />
       <Route path="/qr/:slug/cart" element={<FineDineCartPage />} />
+      <Route path="/qr/:slug/group/:token" element={<FineDineGroupJoinPage />} />
       <Route path="/qr/:slug" element={<RestaurantPage />} />
       <Route path="/qr/:slug/*" element={<QrNestedSlugRedirect />} />
       <Route path="/reserve/:token" element={<ReservationPreOrderPage />} />

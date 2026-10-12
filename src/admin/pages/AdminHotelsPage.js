@@ -117,7 +117,10 @@ const AdminHotelsPage = () => {
                 <th>Venue</th>
                 <th>Client ID</th>
                 <th>Owner</th>
-                <th>Status</th>
+                <th>Onboarding</th>
+                <th>Easebuzz</th>
+                <th>Payout</th>
+                <th>Setup fee</th>
                 <th>Open</th>
                 <th>Actions</th>
               </tr>
@@ -157,6 +160,30 @@ const AdminHotelsPage = () => {
                   </td>
                   <td>
                     <AdminStatusBadge
+                      status={restaurant.easebuzzApplicationStatus || "not_applied"}
+                      label={
+                        restaurant.easebuzzApplicationStatus === "approved"
+                          ? "Approved"
+                          : restaurant.easebuzzApplicationStatus === "applied"
+                            ? "Applied"
+                            : "Not applied"
+                      }
+                    />
+                  </td>
+                  <td>
+                    <AdminStatusBadge
+                      status={restaurant.payoutMode || "manual"}
+                      label={restaurant.payoutMode === "easebuzz" ? "Easebuzz" : "Manual"}
+                    />
+                  </td>
+                  <td>
+                    <AdminStatusBadge
+                      status={restaurant.setupFeeStatus || "pending"}
+                      label={restaurant.setupFeeStatus || "pending"}
+                    />
+                  </td>
+                  <td>
+                    <AdminStatusBadge
                       status={restaurant.isActive ? "ready" : "cancelled"}
                       label={restaurant.isActive ? "Open" : "Closed"}
                     />
@@ -165,14 +192,25 @@ const AdminHotelsPage = () => {
                     <div className="admin-action-row">
                       {REVIEW_STATUSES.has(restaurant.status) && (
                         <>
-                          <button
-                            type="button"
-                            className="admin-btn admin-btn--green admin-btn--small"
-                            disabled={!restaurant.clientId || updatingId === restaurant.clientId}
-                            onClick={() => handleStatusUpdate(restaurant.clientId, "approved")}
-                          >
-                            Approve
-                          </button>
+                          {restaurant.payoutMode === "easebuzz" &&
+                          !restaurant.easebuzzConfigured &&
+                          restaurant.clientId ? (
+                            <Link
+                              to={adminRoutes.hotelDetail(restaurant.clientId)}
+                              className="admin-btn admin-btn--ghost admin-btn--small"
+                            >
+                              Add Easebuzz details
+                            </Link>
+                          ) : (
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--green admin-btn--small"
+                              disabled={!restaurant.clientId || updatingId === restaurant.clientId}
+                              onClick={() => handleStatusUpdate(restaurant.clientId, "approved")}
+                            >
+                              Approve
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="admin-btn admin-btn--ghost admin-btn--small"

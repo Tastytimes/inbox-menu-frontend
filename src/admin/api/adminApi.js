@@ -126,8 +126,52 @@ export const lookupSupportOrders = async (customerPhone) => {
   return data;
 };
 
+export const getEasebuzzFeeConfig = async () => {
+  const { data } = await adminClient.get("/admin/platform/easebuzz-fees");
+  return data;
+};
+
+export const updateEasebuzzFeeConfig = async (payload) => {
+  const { data } = await adminClient.patch("/admin/platform/easebuzz-fees", payload);
+  return data;
+};
+
 export const getRestaurantSupportProfile = async (clientId) => {
   const { data } = await adminClient.get(`/admin/platform/support/restaurants/${clientId}`);
+  return data;
+};
+
+export const listAdminPayouts = async () => {
+  const { data } = await adminClient.get("/admin/platform/payouts");
+  return data;
+};
+
+export const listRestaurantPayoutCycles = async (clientId) => {
+  const { data } = await adminClient.get(
+    `/admin/platform/support/restaurants/${clientId}/payout-cycles`
+  );
+  return data;
+};
+
+export const getRestaurantPayoutCycleDetail = async (clientId, cycleId) => {
+  const { data } = await adminClient.get(
+    `/admin/platform/support/restaurants/${clientId}/payout-cycles/${cycleId}`
+  );
+  return data;
+};
+
+export const updateRestaurantPayoutCycleStatus = async (clientId, cycleId, payload) => {
+  const { data } = await adminClient.patch(
+    `/admin/platform/support/restaurants/${clientId}/payout-cycles/${cycleId}/status`,
+    payload
+  );
+  return data;
+};
+
+export const getRestaurantBankAccount = async (clientId) => {
+  const { data } = await adminClient.get(
+    `/admin/platform/support/restaurants/${clientId}/bank-account`
+  );
   return data;
 };
 
