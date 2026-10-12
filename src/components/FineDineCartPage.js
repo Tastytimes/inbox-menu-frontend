@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
+  createFineDineTableRequest,
   getFineDineTableContext,
   placeFineDineOrder,
   requestFineDineBill,
@@ -14,12 +15,15 @@ import {
   getBillLines,
   getChargeLabel,
   getGuestLabel,
+  getGuestsOnSession,
   getHeldCartItems,
+  getOrdererInfo,
   getOrderItems,
   getOrderLabel,
   getOrderStatus,
   getOrderStatusLabel,
   getOrderTime,
+  getSessionItemDisplayName,
   getSessionItemFoodType,
   getSessionItemName,
   getSessionItemNote,
@@ -27,11 +31,14 @@ import {
   getSessionItemTotal,
   getSessionItemUnitPrice,
   getSessionOrders,
+  isActiveFineDineSession,
   isBillRequested,
   isCancelledOrder,
   isStaffOrder,
   sumItemQuantities,
 } from "../utils/fineDineSession";
+import { getStoredFineDineGuest, matchSessionGuest } from "../utils/fineDineGuestStorage";
+import TableRequestModal from "./TableRequestModal";
 import "./restaurant/RestaurantMenu.css";
 
 const PAY_OPTIONS = [
@@ -51,12 +58,22 @@ const VegDot = ({ foodType }) => {
   );
 };
 
-const OrderItemRow = ({ item, showQtyControls, busy, onQty }) => (
+const OrderItemRow = ({ item, session, order, showQtyControls, busy, onQty }) => {
+  const orderer = getOrdererInfo(item, session, order);
+  return (
   <div className="table-ticket__item">
     <div className="table-ticket__item-name">
       <VegDot foodType={getSessionItemFoodType(item)} />
       <div>
-        <strong>{getSessionItemName(item)}</strong>
+        <strong>{getSessionItemDisplayName(item)}</strong>
+        {orderer ? (
+          <span className="table-ticket__note">
+            {orderer.prefix || "Ordered by"} {orderer.label}
+            {orderer.detail ? (
+              <em className="table-ticket__invite">{orderer.detail}</em>
+            ) : null}
+          </span>
+        ) : null}
         {getSessionItemNote(item) ? (
           <span className="table-ticket__note">{getSessionItemNote(item)}</span>
         ) : null}
@@ -86,12 +103,15 @@ const OrderItemRow = ({ item, showQtyControls, busy, onQty }) => (
       <span className="table-ticket__qty">Qty: {getSessionItemQty(item)}</span>
     )}
   </div>
-);
+  );
+};
 
 const FineDineCartPage = () => {
   const { slug } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const menuHref = `${routes.restaurant(slug)}${location.search}`;
+  const hadSessionRef = useRef(false);
 
   const [session, setSession] = useState(null);
   const [tableNo, setTableNo] = useState(null);
@@ -103,17 +123,28 @@ const FineDineCartPage = () => {
   const [payMethod, setPayMethod] = useState("");
   const [screen, setScreen] = useState("orders");
   const [showPay, setShowPay] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [requestBusy, setRequestBusy] = useState(false);
 
   const showToast = useCallback((message, isError = false) => {
     setToast({ message, isError });
     window.setTimeout(() => setToast(null), 2800);
   }, []);
 
+  const returnToRequestCode = useCallback(
+    (cleared) => {
+      navigate(menuHref, { replace: true, state: cleared ? { tableCleared: true } : {} });
+    },
+    [navigate, menuHref]
+  );
+
   const loadSession = useCallback(async () => {
     const requestedTable = new URLSearchParams(location.search).get("table");
     const context = await getFineDineTableContext(slug, requestedTable);
-    setSession(context.session || null);
-    setTableNo(context.tableNo || context.session?.tableNo || null);
+    const nextSession = isActiveFineDineSession(context.session) ? context.session : null;
+    if (nextSession) hadSessionRef.current = true;
+    setSession(nextSession);
+    setTableNo(context.tableNo || nextSession?.tableNo || null);
     setRestaurantName(context.restaurantName || context.restaurant?.name || "");
     return context;
   }, [slug, location.search]);
@@ -138,13 +169,56 @@ const FineDineCartPage = () => {
   }, [loadSession]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      void loadSession().catch(() => {});
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [loadSession]);
+    if (loading) return;
+    if (isActiveFineDineSession(session)) return;
+    returnToRequestCode(hadSessionRef.current);
+  }, [loading, session, returnToRequestCode]);
 
-  const cartItems = useMemo(() => getHeldCartItems(session), [session]);
+  useEffect(() => {
+    const poll = () => {
+      void loadSession().catch((err) => {
+        const status = err?.response?.status;
+        const message = String(err?.response?.data?.message || "");
+        const sessionGone =
+          status === 404 || /session|cleared|closed|not found/i.test(message);
+        if (sessionGone && hadSessionRef.current) {
+          returnToRequestCode(true);
+        }
+      });
+    };
+    const timer = window.setInterval(poll, 4000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [loadSession, returnToRequestCode]);
+
+  const currentGuest = useMemo(
+    () => matchSessionGuest(session, getStoredFineDineGuest(slug)),
+    [session, slug]
+  );
+  const isHost = currentGuest?.role === "host";
+  const guestActor = currentGuest
+    ? { guestId: currentGuest.id || currentGuest.guestId, guestPhone: currentGuest.phone }
+    : {};
+
+  useEffect(() => {
+    if (loading || !isActiveFineDineSession(session)) return;
+    if (currentGuest) return;
+    navigate(menuHref, { replace: true });
+  }, [loading, session, currentGuest, navigate, menuHref]);
+
+  const allCartItems = useMemo(() => getHeldCartItems(session), [session]);
+  const cartItems = useMemo(() => {
+    if (!currentGuest || isHost) return allCartItems;
+    return allCartItems.filter(
+      (item) => !item.orderedByGuestId || item.orderedByGuestId === currentGuest.id
+    );
+  }, [allCartItems, currentGuest, isHost]);
   const orders = useMemo(() => getSessionOrders(session), [session]);
   const guestOrders = useMemo(() => orders.filter((order) => !isStaffOrder(order)), [orders]);
   const staffOrders = useMemo(() => orders.filter((order) => isStaffOrder(order)), [orders]);
@@ -153,40 +227,75 @@ const FineDineCartPage = () => {
   const bill = useMemo(() => getBillCharges(session), [session]);
   const cartCount = sumItemQuantities(cartItems);
   const canPlace = cartItems.length > 0;
-  const canCheckout = (cartItems.length > 0 || orders.length > 0) && !billRequested;
+  const canCheckout = isHost && (cartItems.length > 0 || orders.length > 0) && !billRequested;
 
   const handleQty = async (item, nextQty) => {
     setBusy(`item-${item.id}`);
     try {
-      const next = await updateFineDineSessionItem(slug, item.id, nextQty);
-      setSession(next.session || next);
+      const next = await updateFineDineSessionItem(slug, item.id, nextQty, guestActor);
+      const nextSession = next.session || next;
+      if (!isActiveFineDineSession(nextSession)) {
+        returnToRequestCode(true);
+        return;
+      }
+      setSession(nextSession);
     } catch (err) {
       showToast(err.response?.data?.message || "Could not update item.", true);
+      void loadSession().catch(() => {});
     } finally {
       setBusy("");
+    }
+  };
+
+  const handleTableRequest = async ({ type, note }) => {
+    setRequestBusy(true);
+    try {
+      const result = await createFineDineTableRequest(slug, {
+        type,
+        note,
+        guestId: guestActor.guestId,
+        guestPhone: guestActor.guestPhone,
+      });
+      setRequestOpen(false);
+      showToast(result.message || "Request sent to the captain.");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Could not send that request.", true);
+    } finally {
+      setRequestBusy(false);
     }
   };
 
   const handlePlaceOrder = async () => {
     setBusy("place");
     try {
-      const next = await placeFineDineOrder(slug);
-      setSession(next.session || next);
+      const next = await placeFineDineOrder(slug, guestActor);
+      const nextSession = next.session || next;
+      if (!isActiveFineDineSession(nextSession)) {
+        returnToRequestCode(true);
+        return;
+      }
+      setSession(nextSession);
       showToast("Order placed. The kitchen will start preparing it.");
     } catch (err) {
       showToast(err.response?.data?.message || "Could not place order.", true);
+      void loadSession().catch(() => {});
     } finally {
       setBusy("");
     }
   };
 
   const handleCheckout = async (method) => {
-    if (method === "online") return;
+    if (method === "online" || !isHost) return;
     setPayMethod(method);
     setBusy("pay");
     try {
-      const next = await requestFineDineBill(slug, { paymentMethod: method });
-      setSession(next.session || next);
+      const next = await requestFineDineBill(slug, guestActor);
+      const nextSession = next.session || next;
+      if (!isActiveFineDineSession(nextSession)) {
+        returnToRequestCode(true);
+        return;
+      }
+      setSession(nextSession);
       setShowPay(false);
       showToast(
         method === "card"
@@ -195,26 +304,16 @@ const FineDineCartPage = () => {
       );
     } catch (err) {
       showToast(err.response?.data?.message || "Could not start checkout.", true);
+      void loadSession().catch(() => {});
     } finally {
       setBusy("");
     }
   };
 
-  if (loading) {
+  if (loading || !isActiveFineDineSession(session)) {
     return (
       <div className="checkout-page d-flex align-items-center justify-content-center">
-        <p className="text-muted">Loading cart…</p>
-      </div>
-    );
-  }
-
-  if (error || !session) {
-    return (
-      <div className="checkout-page checkout-page--empty">
-        <p>{error || "No table session found. Scan the table QR and sit first."}</p>
-        <Link to={menuHref} className="checkout-page__back">
-          ← Back to menu
-        </Link>
+        <p className="text-muted">{error || "Loading cart…"}</p>
       </div>
     );
   }
@@ -247,6 +346,8 @@ const FineDineCartPage = () => {
                     <OrderItemRow
                       key={item.id || `${item.foodId}-${itemIndex}`}
                       item={item}
+                      session={session}
+                      order={order}
                     />
                   ))
                 ) : (
@@ -270,11 +371,22 @@ const FineDineCartPage = () => {
         <Link to={menuHref} className="checkout-page__back">
           ← Menu
         </Link>
+        <button
+          type="button"
+          className="restaurant-page__orders-link table-cart-request-link"
+          onClick={() => setRequestOpen(true)}
+        >
+          Request
+        </button>
         <div>
           <p className="table-cart-top__eyebrow">{restaurantName || "Table"}</p>
           <h1>{screen === "bill" ? "Bill" : getGuestLabel(session)}</h1>
           <p className="table-cart-page__meta">
             {tableNo ? `Table ${tableNo}` : "Your current orders"}
+            {getGuestsOnSession(session).length > 1
+              ? ` · ${getGuestsOnSession(session).length} guests on one bill`
+              : ""}
+            {currentGuest?.name ? ` · ordering as ${currentGuest.name}` : ""}
           </p>
         </div>
       </header>
@@ -292,6 +404,7 @@ const FineDineCartPage = () => {
                   <OrderItemRow
                     key={item.id}
                     item={item}
+                    session={session}
                     showQtyControls
                     busy={busy}
                     onQty={(line, qty) => void handleQty(line, qty)}
@@ -301,8 +414,8 @@ const FineDineCartPage = () => {
             </article>
           ) : null}
 
-          {renderOrderGroup("Your orders", guestOrders)}
-          {renderOrderGroup("Restaurant staff", staffOrders)}
+          {renderOrderGroup(isHost ? "Table orders" : "Your orders", guestOrders)}
+          {renderOrderGroup("Ordered through restaurant staff", staffOrders)}
           {!orders.length && !cartItems.length ? (
             <p className="table-cart-empty">No orders yet. Add items from the menu.</p>
           ) : null}
@@ -317,10 +430,18 @@ const FineDineCartPage = () => {
               <span>Amount</span>
             </div>
             {billLines.length ? (
-              billLines.map((item, index) => (
+              billLines.map((item, index) => {
+                const orderer = getOrdererInfo(item, session, item.__order);
+                return (
                 <div key={item.id || `${item.foodId}-${index}`} className="table-bill__row">
                   <span>
-                    {getSessionItemName(item)}
+                    {getSessionItemDisplayName(item)}
+                    {orderer ? (
+                      <small>
+                        {orderer.prefix || "Ordered by"} {orderer.label}
+                        {orderer.detail ? ` · ${orderer.detail}` : ""}
+                      </small>
+                    ) : null}
                     {getSessionItemNote(item) ? (
                       <small>{getSessionItemNote(item)}</small>
                     ) : null}
@@ -329,7 +450,8 @@ const FineDineCartPage = () => {
                   <span>{formatInr(getSessionItemUnitPrice(item))}</span>
                   <span>{formatInr(getSessionItemTotal(item))}</span>
                 </div>
-              ))
+                );
+              })
             ) : (
               <p className="table-cart-empty">No billed items yet.</p>
             )}
@@ -431,7 +553,7 @@ const FineDineCartPage = () => {
               View menu
             </Link>
           )}
-          {screen === "bill" ? (
+          {screen === "bill" && isHost ? (
             <button
               type="button"
               className="table-cart-nav__btn table-cart-nav__btn--primary"
@@ -443,6 +565,12 @@ const FineDineCartPage = () => {
             >
               {billRequested ? "Bill requested" : "Proceed to pay"}
             </button>
+          ) : screen === "bill" ? (
+            <span className="table-cart-nav__note">
+              {billRequested
+                ? "Bill requested. The host will settle payment."
+                : "You can view this bill. Only the host can request payment."}
+            </span>
           ) : (
             <button
               type="button"
@@ -454,6 +582,13 @@ const FineDineCartPage = () => {
           )}
         </footer>
       )}
+
+      <TableRequestModal
+        open={requestOpen}
+        busy={requestBusy}
+        onClose={() => setRequestOpen(false)}
+        onSubmit={(payload) => void handleTableRequest(payload)}
+      />
 
       {toast ? (
         <div

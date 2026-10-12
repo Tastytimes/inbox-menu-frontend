@@ -59,8 +59,14 @@ const AdminLayout = () => {
           <NavLink to={adminRoutes.refunds} className={linkClass}>
             Refunds
           </NavLink>
+          <NavLink to={adminRoutes.payouts} className={linkClass}>
+            Payouts
+          </NavLink>
           <NavLink to={adminRoutes.appCopy} className={linkClass}>
             App copy
+          </NavLink>
+          <NavLink to={adminRoutes.easebuzzFees} className={linkClass}>
+            Easebuzz fees
           </NavLink>
           <NavLink to={adminRoutes.support} className={linkClass}>
             Customer care

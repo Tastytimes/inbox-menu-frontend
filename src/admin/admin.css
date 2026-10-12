@@ -105,6 +105,31 @@
   box-shadow: 0 0 0 3px rgba(232, 119, 34, 0.15);
 }
 
+.admin-fee-cell {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  min-width: 7rem;
+}
+
+.admin-fee-cell select {
+  width: 4.5rem;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.admin-fee-cell input {
+  width: 4.5rem;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.admin-table--compact th,
+.admin-table--compact td {
+  font-size: 0.82rem;
+  vertical-align: top;
+}
+
 .admin-btn {
   display: inline-flex;
   align-items: center;
@@ -326,6 +351,212 @@
   background: #fff;
   border: 1px solid var(--admin-border);
   border-radius: 0.85rem;
+}
+
+.admin-payout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.admin-payout-card {
+  border: 1px solid var(--admin-border);
+  border-radius: 0.85rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.admin-payout-card--open {
+  border-color: #c5d5cc;
+  box-shadow: 0 8px 24px rgba(30, 77, 59, 0.06);
+}
+
+.admin-payout-card__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: 1rem 1.25rem;
+  align-items: center;
+  padding: 1rem 1.1rem;
+}
+
+.admin-payout-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.admin-payout-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.35rem;
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+}
+
+.admin-payout-card__meta a {
+  color: var(--admin-green);
+}
+
+.admin-payout-card__bank {
+  color: var(--admin-text);
+  font-size: 0.9rem;
+}
+
+.admin-payout-card__bank-meta {
+  margin-top: 0.2rem;
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+}
+
+.admin-payout-card__account {
+  margin-top: 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.02em;
+}
+
+.admin-payout-card__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
+.admin-payout-card__amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.admin-payout-card__amount-label {
+  font-size: 0.75rem;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-payout-detail {
+  border-top: 1px solid var(--admin-border);
+  background: #f7faf8;
+  padding: 1rem 1.1rem 1.15rem;
+}
+
+.admin-payout-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-payout-stat {
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.admin-payout-stat span {
+  display: block;
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.admin-payout-stat strong {
+  font-size: 1rem;
+}
+
+.admin-payout-order {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.55rem;
+}
+
+.admin-payout-order__title {
+  font-weight: 700;
+}
+
+.admin-payout-order__time {
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+  margin-top: 0.15rem;
+}
+
+.admin-payout-order__lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.admin-payout-chip {
+  background: #f4f6f5;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  color: var(--admin-text);
+}
+
+.admin-payout-order__pay {
+  text-align: right;
+}
+
+.admin-payout-order__pay strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.admin-payout-order__pay span {
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+}
+
+.admin-payout-note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+}
+
+.admin-payout-note label {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-payout-note textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+  resize: vertical;
+  background: #fff;
+}
+
+.admin-payout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 820px) {
+  .admin-payout-card__main,
+  .admin-payout-stats,
+  .admin-payout-order {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-payout-card__side,
+  .admin-payout-order__pay {
+    align-items: flex-start;
+    text-align: left;
+  }
 }
 
 .admin-table {

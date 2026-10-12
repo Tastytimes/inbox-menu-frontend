@@ -17,6 +17,7 @@ export const routes = {
   checkoutContact: (slug) => `${QR_BASE}/${slug}/checkout/contact`,
   checkout: (slug) => `${QR_BASE}/${slug}/checkout`,
   tableCart: (slug) => `${QR_BASE}/${slug}/cart`,
+  groupJoin: (slug, token) => `${QR_BASE}/${slug}/group/${token}`,
   paymentStatusForSlug: (slug) => `${QR_BASE}/${slug}/payment/status`,
 };
 
@@ -32,7 +33,9 @@ export const adminRoutes = {
   subscriptionPlans: `${ADMIN_BASE}/subscription-plans`,
   subscriptions: `${ADMIN_BASE}/subscriptions`,
   refunds: `${ADMIN_BASE}/refunds`,
+  payouts: `${ADMIN_BASE}/payouts`,
   appCopy: `${ADMIN_BASE}/app-copy`,
+  easebuzzFees: `${ADMIN_BASE}/easebuzz-fees`,
   orderDetail: (orderId) => `${ADMIN_BASE}/orders/${orderId}`,
   users: `${ADMIN_BASE}/users`,
 };

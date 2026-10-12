@@ -12,15 +12,18 @@ import {
   ContactsSection,
   MenuSection,
   OwnerSection,
+  PayoutSection,
   QrCodesSection,
   SubscriptionsSection,
   VendorSection,
   VerificationSection,
 } from "../components/restaurant/RestaurantReadOnlySections";
 import RestaurantDocumentsSection from "../components/restaurant/RestaurantDocumentsSection";
+import PayoutCyclesSection from "../components/restaurant/PayoutCyclesSection";
 import {
   buildBasicInfoPatch,
   buildOwnerPatch,
+  buildPayoutPatch,
   buildStaffPatch,
   buildVendorPatch,
   profileToEditForm,
@@ -107,6 +110,9 @@ const AdminRestaurantDetailPage = () => {
 
   const handleSaveVendor = () => applyPatch(buildVendorPatch(form), "Vendor payout account updated.");
 
+  const handleSavePayout = () =>
+    applyPatch(buildPayoutPatch(form, status), "Onboarding and payout details updated.");
+
   const handleUploadDocuments = async (files) => {
     setUploadingDocuments(true);
     setError("");
@@ -152,6 +158,13 @@ const AdminRestaurantDetailPage = () => {
     setForm((current) => ({
       ...current,
       owner: { ...current.owner, [field]: value },
+    }));
+  };
+
+  const handlePayoutChange = (field, value) => {
+    setForm((current) => ({
+      ...current,
+      payout: { ...current.payout, [field]: value },
     }));
   };
 
@@ -296,6 +309,17 @@ const AdminRestaurantDetailPage = () => {
               }
             />
           }
+        />
+
+        <PayoutCyclesSection clientId={clientId} />
+
+        <PayoutSection
+          clientId={clientId}
+          basicInfo={basicInfo}
+          editing={editSection === "payout"}
+          form={form}
+          onPayoutChange={handlePayoutChange}
+          actions={<SectionActions section="payout" onSave={handleSavePayout} />}
         />
 
         <BasicInfoSection

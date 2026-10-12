@@ -7,7 +7,9 @@ const normalizeBaseUrl = (url) => (url ? url.replace(/\/+$/, "") : "");
  * never the frontend site origin (e.g. sambhramaa.in) or legacy localhost:8000.
  */
 export const RESTAURANT_API_BASE_URL =
-  normalizeBaseUrl(process.env.REACT_APP_RESTAURANT_API_URL) || "http://localhost:3000";
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : normalizeBaseUrl(process.env.REACT_APP_RESTAURANT_API_URL) || "http://localhost:3000";
 
 export const restaurantClient = axios.create({
   baseURL: RESTAURANT_API_BASE_URL,

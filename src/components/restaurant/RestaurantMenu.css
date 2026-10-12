@@ -1263,13 +1263,24 @@
   padding: 0.65rem 1rem 0.45rem;
 }
 
+.restaurant-page__toolbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
 .restaurant-page__orders-link {
   flex-shrink: 0;
+  border: 0;
+  padding: 0;
+  background: none;
   font-size: 0.78rem;
   font-weight: 600;
   color: #c2410c;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .restaurant-page__orders-link:hover {
@@ -2387,6 +2398,13 @@
   font-size: 1.15rem;
 }
 
+.seating-card__eyebrow {
+  margin: -0.25rem 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #a8a29e;
+}
+
 .seating-card p {
   margin: 0 0 1rem;
   color: #57534e;
@@ -2421,6 +2439,179 @@
   border-radius: 10px;
   padding: 0.65rem 0.75rem;
   font-weight: 500;
+}
+
+.seating-form__start {
+  margin-top: 0.35rem;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+}
+
+.seating-form__hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #78716c;
+}
+
+.group-order-banner {
+  max-width: 640px;
+  margin: 0.75rem auto 0;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.group-order-banner p {
+  margin: 0;
+}
+
+.group-order-share {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #fed7aa;
+}
+
+.group-order-share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.group-order-share__actions button,
+.group-order-share__actions a {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  background: #ea580c;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.group-order-banner__people {
+  margin-top: 0.4rem !important;
+  font-weight: 500;
+}
+
+.group-order-invite {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.group-order-invite label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #44403c;
+}
+
+.group-order-invite input {
+  border: 1px solid #e7e5e4;
+  border-radius: 10px;
+  padding: 0.7rem 0.75rem;
+  background: #fff;
+  font-weight: 500;
+}
+
+.group-order-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.group-order-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(28, 25, 23, 0.45);
+}
+
+.group-order-modal__panel {
+  position: relative;
+  width: min(100%, 420px);
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 48px rgba(28, 25, 23, 0.2);
+}
+
+.group-order-modal__panel h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1.15rem;
+}
+
+.group-order-modal__panel p {
+  margin: 0 0 1rem;
+  color: #57534e;
+  font-size: 0.9rem;
+}
+
+.group-order-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.group-order-modal__actions button,
+.group-order-invite button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  font-weight: 700;
+}
+
+.group-order-modal__actions button[type="submit"] {
+  background: #ea580c;
+  color: #fff;
+}
+
+.group-order-modal__cancel {
+  background: #f5f5f4;
+  color: #44403c;
+}
+
+.table-request-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.table-request-option {
+  border: 1px solid #e7e5e4;
+  border-radius: 10px;
+  padding: 0.65rem 0.4rem;
+  background: #fff;
+  color: #44403c;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.table-request-option--active {
+  border-color: #ea580c;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.table-cart-request-link {
+  align-self: flex-start;
+}
+
+.table-cart-nav__note {
+  display: block;
+  max-width: 220px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9a3412;
+  text-align: right;
 }
 
 .checkout-footer__hint {
@@ -2611,6 +2802,15 @@
   margin-top: 0.15rem;
   font-size: 0.72rem;
   color: #78716c;
+}
+
+.table-ticket__invite {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 600;
+  color: #c2410c;
 }
 
 .table-ticket__qty {
@@ -2818,4 +3018,62 @@
 
 .table-cart-nav__btn:disabled {
   opacity: 0.55;
+}
+
+.reservation-card__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c2410c;
+}
+
+.reservation-card__when {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1c1917;
+}
+
+.reservation-card__details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.reservation-card__details dt {
+  font-size: 0.75rem;
+  color: #78716c;
+}
+
+.reservation-card__details dd {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+}
+
+.reservation-card__preorder {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fff7ed;
+}
+
+.reservation-card__preorder ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.reservation-card__actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.reservation-card__ghost {
+  border: 1.5px solid #c2410c;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  background: #fff;
+  color: #c2410c;
 }

@@ -17,9 +17,16 @@ import CustomerSummary from "./restaurant/CustomerSummary";
 import OrderMixSummary from "./restaurant/OrderMixSummary";
 import "./restaurant/RestaurantMenu.css";
 
-// Fallback label from env. Checkout uses the provider returned by the backend (paytm | payu | cashfree).
-const PAYMENT_PROVIDER = process.env.REACT_APP_PAYMENT_PROVIDER || "paytm";
-const PAYMENT_PROVIDER_LABEL = getPaymentProviderLabel(PAYMENT_PROVIDER);
+const resolveCheckoutProvider = (pricing) =>
+  pricing?.paymentProvider ||
+  process.env.REACT_APP_PAYMENT_PROVIDER ||
+  "payu";
+
+const formatPayAmount = (value) => {
+  const num = Math.round(Number(value) * 100) / 100;
+  if (Number.isNaN(num)) return "0";
+  return Number.isInteger(num) ? String(num) : num.toFixed(2);
+};
 
 const CheckoutPage = () => {
   const { slug } = useParams();
@@ -164,6 +171,7 @@ const CheckoutPage = () => {
   }
 
   const pricing = checkoutPricing ?? cart?.pricing ?? null;
+  const paymentProviderLabel = getPaymentProviderLabel(resolveCheckoutProvider(pricing));
   const payAmount =
     pricing?.customerPayAmount ?? cart.summary?.grandTotal ?? 0;
 
@@ -201,7 +209,7 @@ const CheckoutPage = () => {
 
       <div className="checkout-pay">
         <p className="checkout-pay__secure">
-          Secured by <strong>{PAYMENT_PROVIDER_LABEL}</strong>
+          Secured by <strong>{paymentProviderLabel}</strong>
         </p>
         <button
           type="button"
@@ -210,8 +218,8 @@ const CheckoutPage = () => {
           disabled={paying}
         >
           {paying
-            ? `Redirecting to ${PAYMENT_PROVIDER_LABEL}…`
-            : `Pay ₹${payAmount} with ${PAYMENT_PROVIDER_LABEL}`}
+            ? `Redirecting to ${paymentProviderLabel}…`
+            : `Pay ₹${formatPayAmount(payAmount)} with ${paymentProviderLabel}`}
         </button>
       </div>
 

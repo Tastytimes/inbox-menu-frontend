@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   downloadSubscriptionPaymentInvoice,
   emailSubscriptionPaymentInvoice,
+  getRestaurantBankAccount,
 } from "../../api/adminApi";
 import AdminStatusBadge from "../AdminStatusBadge";
 import DetailRow from "./DetailRow";
@@ -16,6 +17,49 @@ import {
   getRegistrationStatus,
 } from "../../utils/restaurantProfileDisplay";
 import { BUSINESS_TYPE_OPTIONS } from "../../constants/businessTypes";
+
+const ONBOARDING_STATUS_OPTIONS = [
+  { value: "submitted", label: "Submitted" },
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+];
+
+const EASEBUZZ_APPLIED_OPTIONS = [
+  { value: "not_applied", label: "Not applied" },
+  { value: "applied", label: "Applied" },
+  { value: "approved", label: "Approved" },
+];
+
+const PAYOUT_MODE_OPTIONS = [
+  { value: "manual", label: "Manual" },
+  { value: "easebuzz", label: "Easebuzz" },
+];
+
+const SETUP_FEE_STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "paid", label: "Paid" },
+  { value: "waived", label: "Waived off" },
+  { value: "expired", label: "Expired" },
+  { value: "failed", label: "Failed" },
+];
+
+const EASEBUZZ_MERCHANT_CATEGORY_OPTIONS = [
+  { value: "education", label: "Education" },
+  { value: "retail", label: "Retail / Ecommerce / NGO" },
+  { value: "government", label: "Government" },
+  { value: "nbfc", label: "NBFC / Financial institution" },
+  { value: "grocery", label: "Grocery / Agritech" },
+];
+
+const GOV_DOCUMENT_LABELS = {
+  gst: "GST",
+  msme: "MSME",
+  udyam: "Udyam",
+};
+
+const labelFor = (options, value) =>
+  options.find((option) => option.value === value)?.label || value || "—";
 
 const KycPhoto = ({ label, url }) =>
   url ? (
@@ -50,6 +94,12 @@ export const VerificationSection = ({
         <DetailRow label="Registration status">
           <AdminStatusBadge status={status} label={status || "—"} />
         </DetailRow>
+        {basicInfo?.payoutMode === "easebuzz" && !basicInfo?.easebuzzSaltSaved && (
+          <DetailRow
+            label="Easebuzz"
+            value="Save the key and salt in Onboarding & payout before approving."
+          />
+        )}
         <DetailRow
           label="Open for orders"
           value={getIsRestaurantActive({ operational, basicInfo }) ? "Open" : "Closed"}
@@ -225,6 +275,14 @@ export const BasicInfoSection = ({ basicInfo, verification, editing, form, onBas
             <DetailRow label="Aadhar" value={displayValue(info.aadharNumber)} />
             <DetailRow label="PAN" value={displayValue(info.panNumber)} />
             <DetailRow label="GST" value={displayValue(info.gstNumber)} />
+            <DetailRow
+              label="Government document"
+              value={
+                info.govDocumentType
+                  ? `${GOV_DOCUMENT_LABELS[info.govDocumentType] || info.govDocumentType} · ${displayValue(info.govDocumentNumber)}`
+                  : "—"
+              }
+            />
           </div>
           {logoUrl && <img src={logoUrl} alt="" className="admin-venue-logo" />}
           <div className="admin-kyc-links">
@@ -232,8 +290,289 @@ export const BasicInfoSection = ({ basicInfo, verification, editing, form, onBas
             <KycPhoto label="Aadhar photo" url={info.aadharPhotoUrl} />
             <KycPhoto label="PAN photo" url={info.panPhotoUrl} />
             <KycPhoto label="GST photo" url={info.gstPhotoUrl} />
+            <KycPhoto label="Government document" url={info.govDocumentPhotoUrl} />
           </div>
         </>
+      )}
+    </section>
+  );
+};
+
+export const PayoutSection = ({
+  clientId,
+  basicInfo,
+  editing,
+  form,
+  onPayoutChange,
+  actions,
+}) => {
+  const info = basicInfo || {};
+  const payout = form?.payout || {};
+  const accountLabel = info.bankAccountLast4 ? `•••• ${info.bankAccountLast4}` : "—";
+  const [fullAccountNumber, setFullAccountNumber] = useState("");
+  const [revealingAccount, setRevealingAccount] = useState(false);
+  const [accountError, setAccountError] = useState("");
+
+  const revealAccountNumber = async () => {
+    setRevealingAccount(true);
+    setAccountError("");
+    try {
+      const data = await getRestaurantBankAccount(Number(clientId));
+      setFullAccountNumber(data.bankAccountNumber || "");
+    } catch (err) {
+      setAccountError(err.response?.data?.message || "Could not retrieve the account number.");
+    } finally {
+      setRevealingAccount(false);
+    }
+  };
+
+  return (
+    <section className="admin-card admin-section">
+      <div className="admin-section-header">
+        <h2 className="admin-section__title">Onboarding & payout</h2>
+        {actions}
+      </div>
+      {editing ? (
+        <div className="admin-restaurant-form">
+          <div className="admin-field">
+            <label htmlFor="onboardingStatus">Restaurant onboarding status</label>
+            <select
+              id="onboardingStatus"
+              value={payout.status}
+              onChange={(event) => onPayoutChange("status", event.target.value)}
+            >
+              {ONBOARDING_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="easebuzzApplicationStatus">Easebuzz applied status</label>
+            <select
+              id="easebuzzApplicationStatus"
+              value={payout.easebuzzApplicationStatus}
+              onChange={(event) =>
+                onPayoutChange("easebuzzApplicationStatus", event.target.value)
+              }
+            >
+              {EASEBUZZ_APPLIED_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="easebuzzMerchantCategory">Easebuzz merchant category</label>
+            <select
+              id="easebuzzMerchantCategory"
+              value={payout.easebuzzMerchantCategory}
+              onChange={(event) =>
+                onPayoutChange("easebuzzMerchantCategory", event.target.value)
+              }
+            >
+              {EASEBUZZ_MERCHANT_CATEGORY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="payoutMode">Payout method</label>
+            <select
+              id="payoutMode"
+              value={payout.payoutMode}
+              onChange={(event) => onPayoutChange("payoutMode", event.target.value)}
+            >
+              {PAYOUT_MODE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="admin-card__hint">
+              Applied status and payout method can be saved on their own. Key and salt are required
+              only when the restaurant is approved on Easebuzz payout.
+            </p>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="payoutBankAccount">Bank account number</label>
+            <input
+              id="payoutBankAccount"
+              value={payout.bankAccountNumber}
+              onChange={(event) =>
+                onPayoutChange("bankAccountNumber", event.target.value.replace(/\D/g, ""))
+              }
+              placeholder={accountLabel === "—" ? "Account number" : `Saved ${accountLabel}`}
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="payoutBankIfsc">IFSC</label>
+            <input
+              id="payoutBankIfsc"
+              value={payout.bankIfsc}
+              onChange={(event) => onPayoutChange("bankIfsc", event.target.value.toUpperCase())}
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="payoutBankHolder">Account holder</label>
+            <input
+              id="payoutBankHolder"
+              value={payout.bankAccountHolder}
+              onChange={(event) => onPayoutChange("bankAccountHolder", event.target.value)}
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="easebuzzKey">Easebuzz key</label>
+            <input
+              id="easebuzzKey"
+              value={payout.easebuzzKey}
+              onChange={(event) => onPayoutChange("easebuzzKey", event.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="easebuzzSalt">Easebuzz salt</label>
+            <input
+              id="easebuzzSalt"
+              type="password"
+              value={payout.easebuzzSalt}
+              onChange={(event) => onPayoutChange("easebuzzSalt", event.target.value)}
+              placeholder={payout.easebuzzSaltSaved ? "Saved — leave blank to keep" : "Salt"}
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="easebuzzMerchantId">Easebuzz merchant ID</label>
+            <input
+              id="easebuzzMerchantId"
+              value={payout.easebuzzMerchantId}
+              onChange={(event) => onPayoutChange("easebuzzMerchantId", event.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="setupFeeAmount">Setup fee (₹)</label>
+            <input
+              id="setupFeeAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={payout.setupFeeAmount}
+              onChange={(event) => onPayoutChange("setupFeeAmount", event.target.value)}
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="setupFeeStatus">Setup fee status</label>
+            <select
+              id="setupFeeStatus"
+              value={payout.setupFeeStatus}
+              onChange={(event) => onPayoutChange("setupFeeStatus", event.target.value)}
+            >
+              {SETUP_FEE_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="admin-field">
+            <label htmlFor="setupFeeExpiresAt">Setup fee expires</label>
+            <input
+              id="setupFeeExpiresAt"
+              type="datetime-local"
+              value={payout.setupFeeExpiresAt}
+              onChange={(event) => onPayoutChange("setupFeeExpiresAt", event.target.value)}
+            />
+          </div>
+          <div className="admin-field">
+            <label htmlFor="setupFeePaidAt">Setup fee paid</label>
+            <input
+              id="setupFeePaidAt"
+              type="datetime-local"
+              value={payout.setupFeePaidAt}
+              onChange={(event) => onPayoutChange("setupFeePaidAt", event.target.value)}
+            />
+            <p className="admin-card__hint">
+              Leave paid time empty and set status to Paid to stamp the current time on save.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="admin-detail-grid">
+          <DetailRow label="Restaurant onboarding">
+            <AdminStatusBadge status={info.status} label={labelFor(ONBOARDING_STATUS_OPTIONS, info.status)} />
+          </DetailRow>
+          <DetailRow label="Easebuzz applied">
+            <AdminStatusBadge
+              status={info.easebuzzApplicationStatus}
+              label={labelFor(EASEBUZZ_APPLIED_OPTIONS, info.easebuzzApplicationStatus)}
+            />
+          </DetailRow>
+          <DetailRow label="Payout method">
+            <AdminStatusBadge
+              status={info.payoutMode}
+              label={labelFor(PAYOUT_MODE_OPTIONS, info.payoutMode)}
+            />
+          </DetailRow>
+          <DetailRow
+            label="Easebuzz merchant category"
+            value={labelFor(EASEBUZZ_MERCHANT_CATEGORY_OPTIONS, info.easebuzzMerchantCategory)}
+          />
+          <DetailRow label="Bank account">
+            {fullAccountNumber ? (
+              <span>
+                {fullAccountNumber}{" "}
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost admin-btn--small"
+                  onClick={() => setFullAccountNumber("")}
+                >
+                  Hide
+                </button>
+              </span>
+            ) : (
+              <span>
+                {accountLabel}{" "}
+                {info.bankAccountLast4 && (
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn--ghost admin-btn--small"
+                    disabled={revealingAccount}
+                    onClick={revealAccountNumber}
+                  >
+                    {revealingAccount ? "Retrieving…" : "Show full number"}
+                  </button>
+                )}
+                {accountError && <span className="admin-card__hint"> {accountError}</span>}
+              </span>
+            )}
+          </DetailRow>
+          <DetailRow label="IFSC" value={displayValue(info.bankIfsc)} />
+          <DetailRow label="Account holder" value={displayValue(info.bankAccountHolder)} />
+          <DetailRow label="Easebuzz key" value={displayValue(info.easebuzzKey)} />
+          <DetailRow label="Easebuzz salt" value={info.easebuzzSaltSaved ? "Saved" : "Not saved"} />
+          <DetailRow label="Easebuzz merchant ID" value={displayValue(info.easebuzzMerchantId)} />
+          <DetailRow label="Setup fee" value={formatAdminAmount(info.setupFeeAmount)} />
+          <DetailRow label="Setup fee status">
+            <AdminStatusBadge
+              status={info.setupFeeStatus}
+              label={labelFor(SETUP_FEE_STATUS_OPTIONS, info.setupFeeStatus)}
+            />
+          </DetailRow>
+          <DetailRow label="Setup fee expires" value={formatAdminTime(info.setupFeeExpiresAt)} />
+          <DetailRow label="Setup fee paid" value={formatAdminTime(info.setupFeePaidAt)} />
+          {info.setupFeePaymentLinkUrl && (
+            <DetailRow label="Setup fee link">
+              <a href={info.setupFeePaymentLinkUrl} target="_blank" rel="noreferrer">
+                Open payment link
+              </a>
+            </DetailRow>
+          )}
+        </div>
       )}
     </section>
   );
@@ -712,6 +1051,7 @@ export const BillExtraChargesSection = ({ billExtraCharges }) => {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Business type</th>
               <th>Type</th>
               <th>Value</th>
               <th>Sort order</th>
@@ -722,6 +1062,7 @@ export const BillExtraChargesSection = ({ billExtraCharges }) => {
             {charges.map((charge) => (
               <tr key={charge.id}>
                 <td>{displayValue(charge.name)}</td>
+                <td>{displayValue(charge.businessType)}</td>
                 <td>{displayValue(charge.chargeType)}</td>
                 <td>{formatChargeValue(charge)}</td>
                 <td>{displayValue(charge.sortOrder)}</td>

@@ -24,4 +24,9 @@ export const RESTAURANT_DOCUMENT_FIELDS = [
     label: "GST photo",
     getUrl: (basicInfo) => basicInfo?.gstPhotoUrl,
   },
+  {
+    field: "govDocumentPhoto",
+    label: "Government document",
+    getUrl: (basicInfo) => basicInfo?.govDocumentPhotoUrl,
+  },
 ];

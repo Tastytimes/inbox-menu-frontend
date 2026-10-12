@@ -17,14 +17,17 @@ export const getPaymentProviderLabel = (provider) => {
       return "Paytm";
     case "cashfree":
       return "Cashfree";
+    case "easebuzz":
+      return "Easebuzz";
     default:
       return "Payment gateway";
   }
 };
 
 /**
- * Open checkout for Paytm, PayU, or Cashfree from checkout / retry-payment response.
- * Prefers the provider returned by the server so switching PAYMENT_PROVIDER stays in sync.
+ * Open checkout for PayU or Easebuzz (and legacy Paytm/Cashfree) from checkout / retry-payment.
+ * Uses the provider returned by the server: Easebuzz when that restaurant is admin-approved,
+ * otherwise PayU. Do not hardcode a single gateway in the frontend.
  * Returns { redirected: true } if checkout opened, or { paid: true, order } if already paid.
  */
 export const launchPayment = async (response) => {
@@ -64,6 +67,14 @@ export const launchPayment = async (response) => {
       );
     }
     submitPayUCheckout(response.payuCheckout);
+    return { redirected: true };
+  }
+
+  if (response.paymentUrl || provider === "easebuzz") {
+    if (!response.paymentUrl) {
+      throw new Error("Easebuzz checkout link was not returned by the server.");
+    }
+    window.location.href = response.paymentUrl;
     return { redirected: true };
   }
 

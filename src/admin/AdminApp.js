@@ -13,8 +13,10 @@ import AdminSupportPage from "./pages/AdminSupportPage";
 import AdminSubscriptionPlansPage from "./pages/AdminSubscriptionPlansPage";
 import AdminSubscriptionsPage from "./pages/AdminSubscriptionsPage";
 import AdminRefundsPage from "./pages/AdminRefundsPage";
+import AdminPayoutsPage from "./pages/AdminPayoutsPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminAppCopyPage from "./pages/AdminAppCopyPage";
+import AdminEasebuzzFeesPage from "./pages/AdminEasebuzzFeesPage";
 import AdminOrderDetailPage from "./pages/AdminOrderDetailPage";
 import { useAdminAuth } from "./hooks/useAdminAuth";
 import { adminRoutes } from "../utils/routes";
@@ -48,7 +50,9 @@ const AdminApp = () => {
             <Route path="subscription-plans" element={<AdminSubscriptionPlansPage />} />
             <Route path="subscriptions" element={<AdminSubscriptionsPage />} />
             <Route path="refunds" element={<AdminRefundsPage />} />
+            <Route path="payouts" element={<AdminPayoutsPage />} />
             <Route path="app-copy" element={<AdminAppCopyPage />} />
+            <Route path="easebuzz-fees" element={<AdminEasebuzzFeesPage />} />
             <Route path="support" element={<AdminSupportPage />} />
             <Route element={<SuperAdminRoute />}>
               <Route path="users" element={<AdminUsersPage />} />

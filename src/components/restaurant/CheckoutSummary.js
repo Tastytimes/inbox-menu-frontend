@@ -43,6 +43,10 @@ const CheckoutSummary = ({ summary, items = [], pricing }) => {
   const payAmount = pricing?.customerPayAmount ?? grandTotal;
   const showPlatformFee =
     pricing != null && Number(pricing.platformFeeAmount) > 0;
+  const showGatewayFee =
+    pricing != null && Number(pricing.easebuzzGatewayFeeAmount) > 0;
+  const gatewayFeeLabel =
+    pricing?.easebuzzGatewayFeeLabel || "Payment gateway fee";
 
   return (
     <section className="checkout-summary" aria-label="Bill summary">
@@ -98,6 +102,10 @@ const CheckoutSummary = ({ summary, items = [], pricing }) => {
               muted
             />
           </>
+        )}
+
+        {showGatewayFee && (
+          <SummaryRow label={gatewayFeeLabel} amount={pricing.easebuzzGatewayFeeAmount} muted />
         )}
 
         <div className="checkout-summary__divider checkout-summary__divider--strong" />
