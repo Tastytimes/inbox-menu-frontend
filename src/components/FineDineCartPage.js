@@ -25,7 +25,6 @@ import {
   getOrderTime,
   getSessionItemDisplayName,
   getSessionItemFoodType,
-  getSessionItemName,
   getSessionItemNote,
   getSessionItemQty,
   getSessionItemTotal,

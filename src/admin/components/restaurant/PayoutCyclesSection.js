@@ -159,6 +159,7 @@ export const PayoutCyclesSection = ({ clientId }) => {
         <Link to={adminRoutes.payouts}>Payouts</Link> page or here. Paid cycles stay in history.
       </p>
 
+      {error ? <div className="admin-error">{error}</div> : null}
       {loading ? <p className="admin-empty">Loading cycles…</p> : null}
       {!loading && cycles.length === 0 ? (
         <p className="admin-empty">No payout cycles yet (paid orders will appear after sync).</p>
